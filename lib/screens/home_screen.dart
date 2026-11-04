@@ -3,6 +3,7 @@ import 'package:guia_turismo/controller/theme_controller.dart';
 import 'package:guia_turismo/screens/camera_screen.dart';
 import 'package:guia_turismo/screens/cadastro_lugar.dart';
 import 'package:provider/provider.dart';
+import 'package:guia_turismo/screens/mapa_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -25,8 +26,14 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       const CameraScreen(),
       const LugaresScreen(),
+      const MapaScreen(),
     ];
-    const cabecalhos = ['Explore Turismo', 'Câmera', 'Lugares para visitar'];
+    const cabecalhos = [
+      'Explore Turismo',
+      'Câmera',
+      'Lugares para visitar',
+      'Mapa',
+    ];
 
     return Scaffold(
       appBar: AppBar(
@@ -43,11 +50,13 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: paginas[_paginaAtual],
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
         currentIndex: _paginaAtual,
         showSelectedLabels: true,
         showUnselectedLabels: true,
         onTap: _selecionarAba,
         items: const [
+          // Os índices das abas existentes são preservados.
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home),
@@ -62,6 +71,11 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.place_outlined),
             activeIcon: Icon(Icons.place),
             label: 'Lugares',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.map_outlined),
+            activeIcon: Icon(Icons.map),
+            label: 'Mapa',
           ),
         ],
       ),
@@ -128,7 +142,10 @@ class _PaginaInicial extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 28),
-        Text('O que deseja fazer?', style: Theme.of(context).textTheme.titleLarge),
+        Text(
+          'O que deseja fazer?',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
         const SizedBox(height: 12),
         Card(
           child: ListTile(
