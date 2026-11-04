@@ -4,6 +4,8 @@ import 'package:guia_turismo/services/lugares_services.dart';
 import 'package:guia_turismo/services/session_service.dart';
 
 class LugaresController extends ChangeNotifier {
+  final LugaresServices _service;
+  bool limiteAtingido = false;
   bool carregando = false;
   bool cadastrando = false;
   String erro = '';
@@ -12,16 +14,19 @@ class LugaresController extends ChangeNotifier {
   List<LugaresModel> _lugares = [];
   List<LugaresModel> get lugares => _lugares;
 
-  LugaresController() {
-    listaLugares();
+  LugaresController({LugaresServices? service, bool carregarAoIniciar = true})
+    : _service = service ?? LugaresServices() {
+    if (carregarAoIniciar) listaLugares();
   }
 
   Future<void> listaLugares() async {
+    if (carregando) return;
     carregando = true;
     erro = '';
     notifyListeners();
     try {
-      _lugares = await LugaresServices().buscarLugares();
+      _lugares = await _service.buscarLugares();
+      limiteAtingido = _service.limiteAtingido;
     } catch (e) {
       erro = 'Erro ao listar: $e';
     } finally {
@@ -36,7 +41,7 @@ class LugaresController extends ChangeNotifier {
     notifyListeners();
     try {
       final token = await SessionService().pegarToken() ?? '';
-      final mensagem = await LugaresServices().cadastrarLugar(dados, token);
+      final mensagem = await _service.cadastrarLugar(dados, token);
       // Atualiza a lista após o servidor confirmar o cadastro.
       await listaLugares();
       return mensagem;

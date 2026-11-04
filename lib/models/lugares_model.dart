@@ -7,6 +7,14 @@ class LugaresModel {
   final String? descricao;
   final int categoriaId;
 
+  bool get coordenadasValidas =>
+      latitude.isFinite &&
+      longitude.isFinite &&
+      latitude >= -90 &&
+      latitude <= 90 &&
+      longitude >= -180 &&
+      longitude <= 180;
+
   LugaresModel({
     required this.id,
     required this.nome,
@@ -25,14 +33,26 @@ class LugaresModel {
         : categoriaRecebida?.toString();
 
     return LugaresModel(
-      id: (json['id'] as num).toInt(),
+      id: _lerIdentificador(json['id']),
       nome: json['nome']?.toString() ?? '',
       latitude: _lerNumero(json['latitude']),
       longitude: _lerNumero(json['longitude']),
       descricao: json['descricao']?.toString(),
       categoria: nomeCategoria,
-      categoriaId: (json['categoriaId'] as num).toInt(),
+      categoriaId: _lerIdentificador(json['categoriaId']),
     );
+  }
+
+  static int _lerIdentificador(dynamic valor) {
+    if (valor is! num ||
+        !valor.isFinite ||
+        valor < 0 ||
+        valor != valor.toInt()) {
+      throw const FormatException(
+        'Identificador inválido na resposta de lugares.',
+      );
+    }
+    return valor.toInt();
   }
 
   static num _lerNumero(dynamic valor) {
@@ -41,27 +61,28 @@ class LugaresModel {
       final numero = num.tryParse(valor.replaceAll(',', '.'));
       if (numero != null) return numero;
     }
-    throw FormatException('Coordenada inválida recebida da API: $valor');
+    // Mantém o lugar na listagem; o mapa ignora coordenadas ausentes/inválidas.
+    return double.nan;
   }
 
   // O POST /lugares exige apenas estes cinco campos no corpo da requisição.
   // id e categoria são definidos/retornados pelo servidor e não devem ser enviados.
   Map<String, dynamic> toCadastroJson() => {
-        'nome': nome,
-        'descricao': descricao ?? '',
-        'latitude': latitude,
-        'longitude': longitude,
-        'categoriaId': categoriaId,
-      };
+    'nome': nome,
+    'descricao': descricao ?? '',
+    'latitude': latitude,
+    'longitude': longitude,
+    'categoriaId': categoriaId,
+  };
 
   // Representação completa para uso local.
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'nome': nome,
-        'latitude': latitude,
-        'longitude': longitude,
-        'categoria': categoria,
-        'descricao': descricao,
-        'categoriaId': categoriaId,
-      };
+    'id': id,
+    'nome': nome,
+    'latitude': latitude,
+    'longitude': longitude,
+    'categoria': categoria,
+    'descricao': descricao,
+    'categoriaId': categoriaId,
+  };
 }
