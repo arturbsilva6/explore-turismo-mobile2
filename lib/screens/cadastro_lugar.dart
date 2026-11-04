@@ -3,9 +3,18 @@ import 'package:guia_turismo/controller/lugares_controller.dart';
 import 'package:guia_turismo/models/lugares_model.dart';
 import 'package:guia_turismo/screens/detalhe_lugar_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:guia_turismo/models/localizacao_model.dart';
+import 'package:guia_turismo/widgets/busca_localizacao.dart';
+import 'package:guia_turismo/services/geocodificacao_service.dart';
 
 class LugaresScreen extends StatefulWidget {
-  const LugaresScreen({super.key});
+  final GeocodificacaoService? geocodificacaoService;
+  final Widget Function(LocalizacaoResultado)? construirMapa;
+  const LugaresScreen({
+    super.key,
+    this.geocodificacaoService,
+    this.construirMapa,
+  });
 
   @override
   State<LugaresScreen> createState() => _LugaresScreenState();
@@ -24,18 +33,10 @@ class _LugaresScreenState extends State<LugaresScreen> {
   int? _categoriaFiltro;
 
   // Mantém compatibilidade com entradas usando vírgula decimal.
-  double? _lerCoordenada(String valor) =>
-      double.tryParse(valor.trim().replaceAll(',', '.'));
+  double? _lerCoordenada(String valor) => Coordenadas.ler(valor);
 
   String? _validarCoordenada(String? texto, double minimo, double maximo) {
-    final coordenada = _lerCoordenada(texto ?? '');
-    if (coordenada == null || !coordenada.isFinite) {
-      return 'Informe um número válido';
-    }
-    if (coordenada < minimo || coordenada > maximo) {
-      return 'O valor deve estar entre $minimo e $maximo';
-    }
-    return null;
+    return Coordenadas.validar(texto, minimo, maximo);
   }
 
   Future<void> abrirForm() async {
@@ -63,7 +64,8 @@ class _LugaresScreenState extends State<LugaresScreen> {
                     controller: _nomeController,
                     textCapitalization: TextCapitalization.sentences,
                     decoration: const InputDecoration(labelText: 'Nome'),
-                    validator: (valor) => (valor == null || valor.trim().isEmpty)
+                    validator: (valor) =>
+                        (valor == null || valor.trim().isEmpty)
                         ? 'Informe o nome do lugar'
                         : null,
                   ),
@@ -93,6 +95,15 @@ class _LugaresScreenState extends State<LugaresScreen> {
                           },
                   ),
                   const SizedBox(height: 12),
+                  BuscaLocalizacao(
+                    enabled: !salvando,
+                    service: widget.geocodificacaoService,
+                    construirMapa: widget.construirMapa,
+                    onConfirmar: (ponto) {
+                      _latitudeController.text = ponto.latitude.toString();
+                      _longitudeController.text = ponto.longitude.toString();
+                    },
+                  ),
                   TextFormField(
                     controller: _latitudeController,
                     keyboardType: const TextInputType.numberWithOptions(
@@ -143,9 +154,9 @@ class _LugaresScreenState extends State<LugaresScreen> {
 
                       final sucesso = controller.erroCadastro.isEmpty;
                       if (sucesso) Navigator.of(dialogContext).pop();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(mensagem)),
-                      );
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text(mensagem)));
                     },
               child: salvando
                   ? const SizedBox(
@@ -180,7 +191,8 @@ class _LugaresScreenState extends State<LugaresScreen> {
           final lugaresFiltrados = controller.lugares.where((lugar) {
             final combinaNome = lugar.nome.toLowerCase().contains(termo);
             final combinaCategoria =
-                _categoriaFiltro == null || lugar.categoriaId == _categoriaFiltro;
+                _categoriaFiltro == null ||
+                lugar.categoriaId == _categoriaFiltro;
             return combinaNome && combinaCategoria;
           }).toList();
 
@@ -224,29 +236,38 @@ class _LugaresScreenState extends State<LugaresScreen> {
                             value: _categoriaFiltro,
                             items: const [
                               DropdownMenuItem<int?>(
-                                value: null, child: Text('Todas'),
+                                value: null,
+                                child: Text('Todas'),
                               ),
                               DropdownMenuItem<int?>(
-                                value: 1, child: Text('Praias'),
+                                value: 1,
+                                child: Text('Praias'),
                               ),
                               DropdownMenuItem<int?>(
-                                value: 2, child: Text('Points'),
+                                value: 2,
+                                child: Text('Points'),
                               ),
                               DropdownMenuItem<int?>(
-                                value: 3, child: Text('Ilhas'),
+                                value: 3,
+                                child: Text('Ilhas'),
                               ),
                               DropdownMenuItem<int?>(
-                                value: 4, child: Text('Gastronomia'),
+                                value: 4,
+                                child: Text('Gastronomia'),
                               ),
                               DropdownMenuItem<int?>(
-                                value: 5, child: Text('Dicas'),
+                                value: 5,
+                                child: Text('Dicas'),
                               ),
                             ],
-                            onChanged: (id) => setState(() => _categoriaFiltro = id),
+                            onChanged: (id) =>
+                                setState(() => _categoriaFiltro = id),
                           ),
                         ),
                         IconButton(
-                          onPressed: controller.carregando ? null : controller.listaLugares,
+                          onPressed: controller.carregando
+                              ? null
+                              : controller.listaLugares,
                           tooltip: 'Atualizar lista',
                           icon: const Icon(Icons.refresh),
                         ),
@@ -260,9 +281,7 @@ class _LugaresScreenState extends State<LugaresScreen> {
                   ],
                 ),
               ),
-              Expanded(
-                child: _conteudoLugares(controller, lugaresFiltrados),
-              ),
+              Expanded(child: _conteudoLugares(controller, lugaresFiltrados)),
             ],
           );
         },
@@ -312,8 +331,11 @@ class _LugaresScreenState extends State<LugaresScreen> {
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
                 const SizedBox(height: 85),
-                Icon(Icons.search_off_outlined,
-                    size: 52, color: Theme.of(context).colorScheme.primary),
+                Icon(
+                  Icons.search_off_outlined,
+                  size: 52,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 const SizedBox(height: 12),
                 Text(
                   controller.lugares.isEmpty
