@@ -1,0 +1,26 @@
+name: Flutter - análise e testes
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  flutter-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configurar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.7'
+          channel: stable
+          cache: true
+      - name: Resolver dependências
+        run: flutter pub get
+      - name: Analisar projeto
+        run: flutter analyze
+      - name: Executar testes
+        run: flutter test
