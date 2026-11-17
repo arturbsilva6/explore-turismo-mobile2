@@ -59,10 +59,12 @@ A autenticação Firebase permanece inativa por padrão.
    selecionando **seu** projeto no assistente. Se `flutterfire` não estiver no
    PATH, consulte as instruções exibidas pelo Dart para habilitar o diretório
    de executáveis globais.
-7. O arquivo `lib/firebase_options.dart` desta branch é **apenas um
-   placeholder**, que lança um erro explicativo. O comando `flutterfire configure`
-   deve substituí-lo pelo arquivo gerado com valores reais do projeto.
-   Confira também as mudanças de configuração Android geradas pela CLI.
+7. O arquivo `lib/firebase_options.dart` agora contém **opções Android
+   montadas a partir do `google-services.json` do seu próprio projeto**.
+   Não foi gerado pelo FlutterFire CLI. Execute `flutterfire configure`
+   para conferir/regenerar oficialmente a configuração, inclusive alterações
+   de Gradle. O plugin Google Services já está declarado nos arquivos
+   `android/settings.gradle.kts` e `android/app/build.gradle.kts`.
 8. Cadastre no Firebase os hashes de assinatura do aplicativo Android
    (SHA-1 e, quando necessário, SHA-256). Para a chave de debug:
 
@@ -95,19 +97,25 @@ A autenticação Firebase permanece inativa por padrão.
 
 ## O que foi implementado nesta branch
 
-- `lib/firebase_options.dart`: placeholder substituível pela CLI;
+- `lib/firebase_options.dart`: opções Android preenchidas do arquivo oficial do Firebase (pendente regeneração/validação com FlutterFire CLI);
 - `lib/main.dart`: inicialização opcional usando a classe gerada pelo FlutterFire;
 - `lib/services/firebase_auth_service.dart`: autenticação Firebase isolada;
 - `lib/screens/firebase_login_screen.dart`: tela demonstrativa;
 - `lib/screens/login_screen.dart`: atalho sem substituir o login anterior;
 - `pubspec.yaml`: dependências de Firebase e Google;
+- `android/app/google-services.json`: configuração cliente do próprio Firebase;
+- Gradle: plugin Google Services aplicado para gerar recursos Android;
 - `test/firebase_auth_service_test.dart`: testes unitários das mensagens de erro.
 
-**Pendências reais:** gerar o Firebase config do seu projeto, atualizar
-`pubspec.lock` executando `flutter pub get`, validar Gradle/Android,
-habilitar provedores no Console e testar login Google no emulador. Estas
-operações dependem de sua conta Firebase e do Flutter instalado em seu PC;
-nenhum teste Flutter foi executado no ambiente de preparação.
+**Avanços confirmados:** Google e E-mail/senha foram ativados no Console;
+o `android/app/google-services.json` do projeto foi incluído nesta branch,
+as opções Android foram preenchidas e o plugin Google Services foi configurado.
+  
+**Pendências reais:** registrar SHA-1 da chave de assinatura utilizada no seu
+computador, baixar novamente o `google-services.json` após o registro da SHA,
+validar/regenerar opções com FlutterFire CLI, atualizar `pubspec.lock` com
+`flutter pub get`, validar Gradle/Android e testar login Google no emulador.
+Ainda não foi executado `flutter analyze` nem `flutter test` nesta branch.
 
 ## Cuidados
 
