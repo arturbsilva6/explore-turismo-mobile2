@@ -125,3 +125,14 @@ confidenciais nas buscas.
 A estrutura inicial é derivada de exercícios e exemplos da disciplina Mobile II.
 As contribuições de cada integrante devem ser informadas de forma verdadeira
 na entrega e no histórico de commits.
+
+## Aula sobre Firebase Authentication
+
+A branch `feat/firebase-auth-aula` prepara uma **demonstração independente** de
+login Firebase por e-mail/senha e Google. O login da API da faculdade continua
+sendo o único utilizado para cadastrar lugares; um token do Firebase não é
+aceito automaticamente pela API.
+
+A configuração da conta Firebase, do aplicativo Android e do OAuth Google
+é feita pelo próprio estudante. Veja [FIREBASE_AULA.md](FIREBASE_AULA.md)
+para concluir a instalação e validar no emulador.
