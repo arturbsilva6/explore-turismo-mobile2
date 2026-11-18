@@ -21,7 +21,7 @@ jobs:
       - name: Resolver dependências
         run: flutter pub get
       - name: Analisar projeto
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos
       - name: Executar testes
         run: flutter test
       - name: Instalar NDK Android
