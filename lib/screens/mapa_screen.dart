@@ -144,6 +144,21 @@ class _MapaScreenState extends State<MapaScreen> {
         .where((l) => l.coordenadasValidas &&
             (_filtroCategoria == null || l.categoriaId == _filtroCategoria))
         .toList();
+    if (controller.erro.isEmpty && _filtroCategoria != null &&
+        lugares.isEmpty && controller.lugares.any((l) => l.coordenadasValidas)) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Nenhum lugar dessa categoria no mapa.'),
+            TextButton(
+              onPressed: () => setState(() => _filtroCategoria = null),
+              child: const Text('Limpar filtro'),
+            ),
+          ],
+        ),
+      );
+    }
     if (controller.erro.isNotEmpty || lugares.isEmpty) {
       return Center(
         child: Padding(
