@@ -115,7 +115,7 @@ confidenciais nas buscas.
 
 - `lib/models` — dados e conversão JSON
 - `lib/services` — chamadas HTTP e persistência de sessão
-- `lib/controller` — estado e integração entre serviços e telas
+- `lib/controllers` — estado e integração entre serviços e telas (a pasta `lib/controller` conserva aliases legados)
 - `lib/screens` — interface, formulário, lista e detalhes
 - `lib/themes` — tema e cores
 - `lib/widgets` — busca de localização reutilizável no formulário
