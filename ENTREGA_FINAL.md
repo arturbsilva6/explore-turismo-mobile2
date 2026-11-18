@@ -24,7 +24,7 @@ Este documento descreve a implementação proposta no PR #3, sem confundir execu
 4. GPS só é solicitado após o usuário tocar em **Minha localização GPS**. Não há localização em segundo plano.
 5. A localização por CEP via Nominatim continua independente do GPS real do aparelho.
 6. As duas autenticações foram mantidas deliberadamente separadas para não romper o cadastro da atividade anterior.
-7. A pasta legada `lib/controller` segue existente para compatibilidade com as entregas 1 e 2. Os componentes novos serão gradualmente migrados para `lib/controllers`.
+7. Todos os controladores foram organizados em `lib/controllers`. A pasta antiga `lib/controller` contém apenas reexports para manter compatibilidade com imports da primeira e segunda entrega.
 8. Os testes de Flutter no GitHub Actions não substituem teste de permissão GPS, câmera, galeria, navegação externa e autenticação no aparelho real.
 
 ## Como testar no Galaxy S23
