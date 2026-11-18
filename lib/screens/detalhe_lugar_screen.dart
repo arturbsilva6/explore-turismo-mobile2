@@ -12,9 +12,19 @@ import 'package:guia_turismo/services/session_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
-class DetalheLugarScreen extends StatelessWidget {
+class DetalheLugarScreen extends StatefulWidget {
   final LugaresModel lugar;
   const DetalheLugarScreen({super.key, required this.lugar});
+
+  @override
+  State<DetalheLugarScreen> createState() => _DetalheLugarScreenState();
+}
+
+class _DetalheLugarScreenState extends State<DetalheLugarScreen> {
+  late LugaresModel _lugarAtual = widget.lugar;
+  bool _enviandoFoto = false;
+
+  LugaresModel get lugar => _lugarAtual;
 
   Future<void> _comoChegar(BuildContext context) async {
     try {
@@ -31,33 +41,68 @@ class DetalheLugarScreen extends StatelessWidget {
   }
 
   Future<void> _anexarFoto(BuildContext context) async {
-    final token = await SessionService().pegarToken() ?? '';
-    if (!context.mounted) return;
-    if (token.trim().isEmpty) {
+    if (_enviandoFoto) return;
+    final tokenAntes = await SessionService().pegarToken() ?? '';
+    if (!mounted) return;
+    if (tokenAntes.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Faça login na API da faculdade para adicionar fotos.'),
+        content: Text('Entre com sua conta da API para adicionar fotos.'),
       ));
       return;
     }
+    final origem = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Wrap(children: [
+          ListTile(
+            leading: const Icon(Icons.camera_alt_outlined),
+            title: const Text('Tirar foto'),
+            onTap: () => Navigator.pop(sheetContext, ImageSource.camera),
+          ),
+          ListTile(
+            leading: const Icon(Icons.photo_library_outlined),
+            title: const Text('Escolher da galeria'),
+            onTap: () => Navigator.pop(sheetContext, ImageSource.gallery),
+          ),
+        ]),
+      ),
+    );
+    if (!mounted || origem == null) return;
+    setState(() => _enviandoFoto = true);
     try {
       final imagem = await ImagePicker().pickImage(
-        source: ImageSource.gallery, imageQuality: 75, maxWidth: 1600,
+        source: origem, imageQuality: 75, maxWidth: 1600,
       );
       if (imagem == null) return;
+      // Uma troca de conta durante o seletor não deve autorizar o upload antigo.
+      final tokenAtual = await SessionService().pegarToken() ?? '';
+      if (tokenAtual.isEmpty || tokenAtual != tokenAntes) {
+        throw const FormatException('A sessão mudou. Entre novamente.');
+      }
       await GaleriaService().enviarFoto(
-        lugarId: lugar.id, caminho: File(imagem.path).path, token: token,
+        lugarId: lugar.id, caminho: File(imagem.path).path, token: tokenAtual,
       );
-      if (!context.mounted) return;
-      context.read<LugaresController>().listaLugares();
+      if (!mounted) return;
+      final controller = context.read<LugaresController>();
+      await controller.listaLugares();
+      if (!mounted) return;
+      for (final atualizado in controller.lugares) {
+        if (atualizado.id == lugar.id) {
+          setState(() => _lugarAtual = atualizado);
+          break;
+        }
+      }
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Foto enviada para a galeria do lugar. Atualize a tela para ver.'),
+        content: Text('Foto enviada. A imagem aparecerá quando a API disponibilizar a galeria.'),
       ));
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Falha ao adicionar foto: $e'),
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Não foi possível enviar a foto. Confira a conexão e a sessão.'),
         ));
       }
+    } finally {
+      if (mounted) setState(() => _enviandoFoto = false);
     }
   }
 
@@ -125,9 +170,14 @@ class DetalheLugarScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           OutlinedButton.icon(
-            onPressed: () => _anexarFoto(context),
-            icon: const Icon(Icons.add_photo_alternate_outlined),
-            label: const Text('Adicionar foto à galeria'),
+            onPressed: _enviandoFoto ? null : () => _anexarFoto(context),
+            icon: _enviandoFoto
+                ? const SizedBox(
+                    width: 20, height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.add_photo_alternate_outlined),
+            label: Text(_enviandoFoto ? 'Enviando foto...' : 'Adicionar foto à galeria'),
           ),
           const SizedBox(height: 12),
           Text('Sobre este lugar', style: Theme.of(context).textTheme.titleLarge),
