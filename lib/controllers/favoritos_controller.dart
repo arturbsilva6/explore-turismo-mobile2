@@ -109,11 +109,12 @@ class FavoritosController extends ChangeNotifier {
     final antigo = _ids.contains(id);
     _alterando.add(id);
     erro = null;
+    String? tokenUsado;
     try {
-      final token = await SessionService().pegarToken();
+      tokenUsado = await SessionService().pegarToken();
       if (!_vigente(geracao)) return false;
-      if (token != null && token.isNotEmpty) {
-        await _service.definir(token, id, favorito: !antigo);
+      if (tokenUsado != null && tokenUsado.isNotEmpty) {
+        await _service.definir(tokenUsado, id, favorito: !antigo);
         if (!_vigente(geracao)) return false;
       }
       final proximo = Set<int>.of(_ids);
@@ -131,9 +132,8 @@ class FavoritosController extends ChangeNotifier {
       return true;
     } on SessaoExpiradaException {
       if (_vigente(geracao)) {
-        final tokenAtual = await SessionService().pegarToken();
-        if (tokenAtual != null &&
-            await SessionService().invalidarSeAtual(tokenAtual)) {
+        if (tokenUsado != null &&
+            await SessionService().invalidarSeAtual(tokenUsado)) {
           limpar();
           NavegacaoService.irParaLogin();
         }
