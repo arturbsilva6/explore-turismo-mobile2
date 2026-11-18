@@ -47,25 +47,46 @@ class LugaresModel {
   }
 
   static String? extrairFotoUrl(Map<String, dynamic> json) {
-    // A API pode fornecer capa/foto ou uma galeria de fotos.
-    Object? valor = json['fotoUrl'] ?? json['foto_url'] ??
-        json['imagem'] ?? json['foto'] ?? json['urlImagem'] ?? json['capa'];
-    final galeria = json['galeria'] ?? json['fotos'];
-    if (valor == null && galeria is List && galeria.isNotEmpty) {
-      valor = galeria.first;
+    final diretos = [
+      json['fotoUrl'], json['foto_url'], json['imagem'],
+      json['foto'], json['urlImagem'], json['capa'],
+    ];
+    for (final valor in diretos) {
+      final foto = _normalizarFoto(valor);
+      if (foto != null) return foto;
     }
+    var galeria = json['galeria'] ?? json['fotos'];
+    if (galeria is Map) {
+      galeria = galeria['data'] ?? galeria['fotos'] ?? galeria['itens'];
+    }
+    if (galeria is List) {
+      for (final item in galeria) {
+        final foto = _normalizarFoto(item);
+        if (foto != null) return foto;
+      }
+    }
+    return _normalizarFoto(galeria);
+  }
+
+  static String? _normalizarFoto(Object? valor) {
     if (valor is Map) {
-      valor = valor['url'] ?? valor['urlFoto'] ?? valor['caminho'] ??
+      valor = valor['urlFoto'] ?? valor['url'] ?? valor['caminho'] ??
           valor['foto'] ?? valor['imagem'];
     }
     if (valor is! String || valor.trim().isEmpty) return null;
     final uri = Uri.tryParse(valor.trim());
     if (uri == null) return null;
-    if (uri.scheme == 'https') return uri.toString();
-    if (uri.hasScheme || uri.host.isNotEmpty || !valor.trim().startsWith('/')) {
+    if (uri.scheme == 'https' && uri.host.isNotEmpty) return uri.toString();
+    // URLs HTTP e esquemas que não são de imagem HTTPS não são aceitos.
+    if (uri.hasScheme || uri.hasAuthority || uri.path.isEmpty) return null;
+    if (uri.pathSegments.any((segmento) => segmento == '..' || segmento == '.')) {
       return null;
     }
-    return Uri.parse('https://guia.liliaborges.com.br').resolveUri(uri).toString();
+    final caminho = uri.path.startsWith('/') ? uri.path : '/${uri.path}';
+    return Uri.https(
+      'guia.liliaborges.com.br', caminho,
+      uri.hasQuery ? uri.queryParameters : null,
+    ).toString();
   }
 
   static int _lerIdentificador(dynamic valor) {
