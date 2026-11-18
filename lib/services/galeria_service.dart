@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
+import 'package:guia_turismo/services/session_service.dart';
 
 /// Envio da foto para POST /lugares/{id}/galeria (multipart: campo foto).
 class GaleriaService {
@@ -42,6 +43,9 @@ class GaleriaService {
     final resposta = await (_client?.send(requisicao) ?? requisicao.send())
         .timeout(const Duration(seconds: 35));
     await resposta.stream.drain<void>();
+    if (resposta.statusCode == 401 || resposta.statusCode == 403) {
+      throw const SessaoExpiradaException();
+    }
     if (resposta.statusCode != 201 && resposta.statusCode != 200) {
       throw Exception('Falha ao enviar foto (HTTP ${resposta.statusCode}).');
     }
