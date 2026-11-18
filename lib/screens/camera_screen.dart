@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:guia_turismo/controller/camera_controller.dart';
+import 'package:guia_turismo/controllers/camera_controller.dart';
 import 'package:provider/provider.dart';
 
 class CameraScreen extends StatelessWidget {
