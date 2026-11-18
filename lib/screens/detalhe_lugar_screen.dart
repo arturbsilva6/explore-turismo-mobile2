@@ -88,7 +88,7 @@ class DetalheLugarScreen extends StatelessWidget {
                 final salvo = await favoritos!.alternar(lugar.id);
                 if (!salvo && context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text(favoritos.erro ?? 'Não foi possível alterar favorito.'),
+                    content: Text(favoritos?.erro ?? 'Não foi possível alterar favorito.'),
                   ));
                 }
               },
