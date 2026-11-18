@@ -5,7 +5,7 @@ import 'package:guia_turismo/widgets/lugar_foto.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
-import 'package:guia_turismo/controller/lugares_controller.dart';
+import 'package:guia_turismo/controllers/lugares_controller.dart';
 import 'package:guia_turismo/models/lugares_model.dart';
 import 'package:guia_turismo/screens/detalhe_lugar_screen.dart';
 
@@ -98,7 +98,7 @@ class _MapaScreenState extends State<MapaScreen> {
                   } catch (e) {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(e.toString())),
+                        const SnackBar(content: Text('Não foi possível abrir a rota no aplicativo de mapas.')),
                       );
                     }
                   }
