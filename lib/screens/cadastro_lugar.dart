@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:guia_turismo/models/localizacao_model.dart';
 import 'package:guia_turismo/widgets/busca_localizacao.dart';
 import 'package:guia_turismo/services/geocodificacao_service.dart';
+import 'package:guia_turismo/services/session_service.dart';
 
 class LugaresScreen extends StatefulWidget {
   final GeocodificacaoService? geocodificacaoService;
@@ -43,6 +44,18 @@ class _LugaresScreenState extends State<LugaresScreen> {
 
   String? _validarCoordenada(String? texto, double minimo, double maximo) {
     return Coordenadas.validar(texto, minimo, maximo);
+  }
+
+  Future<void> _abrirCadastroAutorizado() async {
+    final token = await SessionService().pegarToken();
+    if (!mounted) return;
+    if (token == null || token.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Para cadastrar um lugar, entre com uma conta da API da disciplina.'),
+      ));
+      return;
+    }
+    await abrirForm();
   }
 
   Future<void> abrirForm() async {
@@ -374,7 +387,7 @@ class _LugaresScreenState extends State<LugaresScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: abrirForm,
+        onPressed: _abrirCadastroAutorizado,
         icon: const Icon(Icons.add_location_alt_outlined),
         label: const Text('Novo lugar'),
       ),
