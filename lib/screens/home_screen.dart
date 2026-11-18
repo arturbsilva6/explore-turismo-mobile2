@@ -24,6 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _sair() async {
     final favoritos = context.read<FavoritosController>();
     try {
+      favoritos.limpar();
       await SessionService().logout();
       if (Firebase.apps.isNotEmpty) await FirebaseAuthService().sair();
       await favoritos.carregar();
@@ -74,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: paginas[_paginaAtual],
+      body: IndexedStack(index: _paginaAtual, children: paginas),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _paginaAtual,
