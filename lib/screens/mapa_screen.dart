@@ -25,6 +25,7 @@ class _MapaScreenState extends State<MapaScreen> {
   LatLng? _minhaPosicao;
   bool _buscandoGps = false;
   String? _erroGps;
+  bool _exigeConfiguracoesGps = false;
   int? _filtroCategoria;
 
   @override
@@ -38,6 +39,7 @@ class _MapaScreenState extends State<MapaScreen> {
     setState(() {
       _buscandoGps = true;
       _erroGps = null;
+      _exigeConfiguracoesGps = false;
     });
     try {
       final posicao = await (widget.localizacaoService ?? LocalizacaoAtualService())
@@ -47,7 +49,13 @@ class _MapaScreenState extends State<MapaScreen> {
       setState(() => _minhaPosicao = ponto);
       if (_mapaPronto) _mapaController.move(ponto, 15);
     } catch (e) {
-      if (mounted) setState(() => _erroGps = e.toString());
+      if (mounted) {
+        setState(() {
+          _erroGps = e.toString();
+          _exigeConfiguracoesGps =
+              e is LocalizacaoIndisponivel && e.exigeConfiguracoes;
+        });
+      }
     } finally {
       if (mounted) setState(() => _buscandoGps = false);
     }
@@ -228,6 +236,15 @@ class _MapaScreenState extends State<MapaScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(_erroGps!, style: TextStyle(color: cores.error)),
+          ),
+        if (_exigeConfiguracoesGps)
+          TextButton.icon(
+            onPressed: () async {
+              await (widget.localizacaoService ?? LocalizacaoAtualService())
+                  .abrirConfiguracoes();
+            },
+            icon: const Icon(Icons.settings_outlined),
+            label: const Text('Abrir permissões do aplicativo'),
           ),
         if (_erroTiles)
           Padding(
