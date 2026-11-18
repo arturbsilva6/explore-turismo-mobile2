@@ -1,4 +1,6 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:guia_turismo/screens/firebase_login_screen.dart';
 import 'package:guia_turismo/controller/auth_controller.dart';
 import 'package:provider/provider.dart';
 
@@ -46,6 +48,32 @@ class _LoginScreenState extends State<LoginScreen> {
                   }
                 },
                 child: Text("Entrar"),
+              ),
+              const SizedBox(height: 18),
+              const Text(
+                'Autenticação do Guia Turismo (API da disciplina)',
+                textAlign: TextAlign.center,
+              ),
+              TextButton.icon(
+                icon: const Icon(Icons.verified_user_outlined),
+                label: const Text('Experimentar Firebase Authentication'),
+                onPressed: () {
+                  if (Firebase.apps.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Firebase ainda não configurado. Consulte FIREBASE_AULA.md.',
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const FirebaseLoginScreen(),
+                    ),
+                  );
+                },
               ),
             ],
           ),

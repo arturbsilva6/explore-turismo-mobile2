@@ -8,6 +8,8 @@
 */
 
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:guia_turismo/firebase_options.dart';
 import 'package:guia_turismo/controller/auth_controller.dart';
 import 'package:guia_turismo/controller/camera_controller.dart';
 import 'package:guia_turismo/controller/lugares_controller.dart';
@@ -18,8 +20,22 @@ import 'package:guia_turismo/screens/login_screen.dart';
 import 'package:guia_turismo/screens/cadastro_lugar.dart';
 import 'package:provider/provider.dart';
 
-void main() {
-  runApp(Inicializar());
+// Por padrão, o aplicativo mantém a API da faculdade funcionando.
+ // Após executar flutterfire configure no seu próprio projeto Firebase,
+ // rode com --dart-define=FIREBASE_ENABLED=true para habilitar a demonstração.
+const bool firebaseHabilitado = bool.fromEnvironment(
+  'FIREBASE_ENABLED',
+  defaultValue: false,
+);
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  if (firebaseHabilitado) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
+  runApp(const Inicializar());
 }
 
 class Inicializar extends StatefulWidget {
