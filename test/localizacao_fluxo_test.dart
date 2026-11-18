@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:guia_turismo/controller/geocodificacao_controller.dart';
 import 'package:guia_turismo/controller/lugares_controller.dart';
 import 'package:guia_turismo/models/localizacao_model.dart';
@@ -94,6 +95,7 @@ void main() {
     'ajuste e confirmação transferem coordenadas ao formulário sem POST',
     (tester) async {
       await telaGrande(tester);
+      SharedPreferences.setMockInitialValues({'token': 'token-teste-api'});
       final lugares = LugaresSemCadastro();
       await tester.pumpWidget(
         ChangeNotifierProvider<LugaresController>.value(

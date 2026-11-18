@@ -1,34 +1,11 @@
-// import 'package:secure_shared_preferences/secure_shared_preferences.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/*class SessionService {
-  Future<void> salvarToken(String token) async {
-    final prefs = await SecureSharedPref.getInstance();
-    await prefs.putString('token', token, isEncrypted: true);
-  }
-
-  Future<String?> pegarToken() async {
-    final prefs = await SecureSharedPref.getInstance();
-    return prefs.getString('token', isEncrypted: true);
-  }
-
-  Future<void> logout() async {
-    final prefs = await SecureSharedPref.getInstance();
-    await prefs.clearAll();
-  }
-}*/
-
-/* 
-  Questões de Login
-*/
+/// Sessão da API acadêmica. Não confundir com o usuário do Firebase.
+/// O token é armazenado localmente apenas para a demonstração acadêmica.
 class SessionService {
   static String nome = '';
   static String email = '';
 
-/* 
-  Future é para métodos asincronos, <String> significa que ele vai
-  tentar trazer uma string 
-*/ 
   Future<String> pegarNome() async {
     final prefs = await SharedPreferences.getInstance();
     nome = prefs.getString('nome') ?? '';
@@ -51,14 +28,43 @@ class SessionService {
     return prefs.getString('token');
   }
 
+  Future<bool> temSessaoApi() async {
+    final token = await pegarToken();
+    return token != null && token.trim().isNotEmpty;
+  }
+
+  /// Só invalida a identidade que enviou a requisição recusada.
+  Future<bool> invalidarSeAtual(String tokenUsado) async {
+    final atual = await pegarToken();
+    if (atual == null || atual != tokenUsado) return false;
+    await logout();
+    return true;
+  }
+
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
+    await prefs.remove('nome');
+    await prefs.remove('email');
+    nome = '';
+    email = '';
   }
 
   Future<void> salvarUsuario(Map user) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('email', user['email']);
-    await prefs.setString('nome', user['nome']);
+    final novoEmail = user['email']?.toString() ?? '';
+    final novoNome = user['nome']?.toString() ?? '';
+    await prefs.setString('email', novoEmail);
+    await prefs.setString('nome', novoNome);
+    email = novoEmail;
+    nome = novoNome;
   }
+}
+
+/// Requisição autenticada recusada por credencial inválida ou expirada.
+class SessaoExpiradaException implements Exception {
+  const SessaoExpiradaException();
+
+  @override
+  String toString() => 'Sua sessão da API expirou. Entre novamente.';
 }

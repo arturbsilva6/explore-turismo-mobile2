@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:guia_turismo/controller/theme_controller.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:guia_turismo/services/firebase_auth_service.dart';
+import 'package:guia_turismo/services/session_service.dart';
+import 'package:guia_turismo/controllers/favoritos_controller.dart';
+import 'package:guia_turismo/controllers/theme_controller.dart';
 import 'package:guia_turismo/screens/camera_screen.dart';
 import 'package:guia_turismo/screens/cadastro_lugar.dart';
 import 'package:provider/provider.dart';
@@ -16,6 +20,24 @@ class _HomeScreenState extends State<HomeScreen> {
   int _paginaAtual = 0;
 
   void _selecionarAba(int pagina) => setState(() => _paginaAtual = pagina);
+
+  Future<void> _sair() async {
+    final favoritos = context.read<FavoritosController>();
+    try {
+      favoritos.limpar();
+      await SessionService().logout();
+      if (Firebase.apps.isNotEmpty) await FirebaseAuthService().sair();
+      await favoritos.carregar();
+      if (!mounted) return;
+      Navigator.of(context).pushNamedAndRemoveUntil('login', (r) => false);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Não foi possível sair. Tente novamente.')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +61,11 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: Text(cabecalhos[_paginaAtual]),
         actions: [
+          IconButton(
+            tooltip: 'Sair da conta',
+            onPressed: _sair,
+            icon: const Icon(Icons.logout_outlined),
+          ),
           Consumer<ThemeController>(
             builder: (context, tema, _) => IconButton(
               onPressed: tema.alternarTema,
@@ -48,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: paginas[_paginaAtual],
+      body: IndexedStack(index: _paginaAtual, children: paginas),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _paginaAtual,

@@ -1,6 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:guia_turismo/services/firebase_auth_service.dart';
+import 'package:guia_turismo/services/session_service.dart';
+import 'package:guia_turismo/controllers/favoritos_controller.dart';
+import 'package:provider/provider.dart';
 
 /// Tela de exercício conforme a aula: e-mail/senha, Google e dados do usuário.
 /// Mantém o login da API de Turismo em uma tela independente.
@@ -27,7 +30,8 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
     super.dispose();
   }
 
-  Future<void> _executar(Future<void> Function() acao) async {
+  Future<void> _executar(Future<void> Function() acao,
+      {bool iniciarSessaoFirebase = false}) async {
     if (_carregando) return;
     setState(() {
       _carregando = true;
@@ -35,6 +39,18 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
     });
     try {
       await acao();
+      if (iniciarSessaoFirebase) {
+        if (!mounted) return;
+        final favoritos = context.read<FavoritosController>();
+        favoritos.limpar();
+        // Nunca herdar JWT de uma conta acadêmica após login Firebase.
+        await SessionService().logout();
+        await favoritos.carregar();
+      } else if (_service.usuarioAtual == null && mounted) {
+        final favoritos = context.read<FavoritosController>();
+        favoritos.limpar();
+        await favoritos.carregar();
+      }
     } catch (erro) {
       if (mounted) setState(() => _erro = FirebaseAuthService.mensagemDoErro(erro));
     } finally {
@@ -50,7 +66,7 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
       } else {
         await _service.entrarComEmail(_email.text, _senha.text);
       }
-    });
+    }, iniciarSessaoFirebase: true);
   }
 
   @override
@@ -147,7 +163,7 @@ class _FirebaseLoginScreenState extends State<FirebaseLoginScreen> {
                       ? null
                       : () => _executar(() async {
                           await _service.entrarComGoogle();
-                        }),
+                        }, iniciarSessaoFirebase: true),
                   icon: const Icon(Icons.login),
                   label: const Text('Entrar com o Google'),
                 ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:guia_turismo/controller/geocodificacao_controller.dart';
+import 'package:guia_turismo/controllers/geocodificacao_controller.dart';
 import 'package:guia_turismo/models/localizacao_model.dart';
 import 'package:guia_turismo/screens/selecionar_localizacao_screen.dart';
 import 'package:guia_turismo/services/geocodificacao_service.dart';
@@ -109,7 +109,7 @@ class _BuscaLocalizacaoState extends State<BuscaLocalizacao> {
               ),
             const SizedBox(height: 8),
             const Text(
-              'Busca: Nominatim · © OpenStreetMap contributors · ODbL',
+              'Busca: ViaCEP e Nominatim · © OpenStreetMap contributors · ODbL',
               style: TextStyle(fontSize: 12),
             ),
             const SelectableText(

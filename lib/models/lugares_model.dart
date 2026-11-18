@@ -6,6 +6,7 @@ class LugaresModel {
   final num longitude;
   final String? descricao;
   final int categoriaId;
+  final String? fotoUrl;
 
   bool get coordenadasValidas =>
       latitude.isFinite &&
@@ -23,6 +24,7 @@ class LugaresModel {
     required this.longitude,
     this.descricao,
     required this.categoriaId,
+    this.fotoUrl,
   });
 
   // Converte a resposta do GET /lugares em um objeto Dart.
@@ -39,8 +41,52 @@ class LugaresModel {
       longitude: _lerNumero(json['longitude']),
       descricao: json['descricao']?.toString(),
       categoria: nomeCategoria,
-      categoriaId: _lerIdentificador(json['categoriaId']),
+      categoriaId: _lerIdentificador(json['categoriaId'] ?? json['categoria_id']),
+      fotoUrl: extrairFotoUrl(json),
     );
+  }
+
+  static String? extrairFotoUrl(Map<String, dynamic> json) {
+    final diretos = [
+      json['fotoUrl'], json['foto_url'], json['imagem'],
+      json['foto'], json['urlImagem'], json['capa'],
+    ];
+    for (final valor in diretos) {
+      final foto = _normalizarFoto(valor);
+      if (foto != null) return foto;
+    }
+    var galeria = json['galeria'] ?? json['fotos'];
+    if (galeria is Map) {
+      galeria = galeria['data'] ?? galeria['fotos'] ?? galeria['itens'];
+    }
+    if (galeria is List) {
+      for (final item in galeria) {
+        final foto = _normalizarFoto(item);
+        if (foto != null) return foto;
+      }
+    }
+    return _normalizarFoto(galeria);
+  }
+
+  static String? _normalizarFoto(Object? valor) {
+    if (valor is Map) {
+      valor = valor['urlFoto'] ?? valor['url'] ?? valor['caminho'] ??
+          valor['foto'] ?? valor['imagem'];
+    }
+    if (valor is! String || valor.trim().isEmpty) return null;
+    final uri = Uri.tryParse(valor.trim());
+    if (uri == null) return null;
+    if (uri.scheme == 'https' && uri.host.isNotEmpty) return uri.toString();
+    // URLs HTTP e esquemas que não são de imagem HTTPS não são aceitos.
+    if (uri.hasScheme || uri.hasAuthority || uri.path.isEmpty) return null;
+    if (uri.pathSegments.any((segmento) => segmento == '..' || segmento == '.')) {
+      return null;
+    }
+    final caminho = uri.path.startsWith('/') ? uri.path : '/${uri.path}';
+    return Uri.https(
+      'guia.liliaborges.com.br', caminho,
+      uri.hasQuery ? uri.queryParameters : null,
+    ).toString();
   }
 
   static int _lerIdentificador(dynamic valor) {
@@ -84,5 +130,6 @@ class LugaresModel {
     'categoria': categoria,
     'descricao': descricao,
     'categoriaId': categoriaId,
+    'fotoUrl': fotoUrl,
   };
 }
