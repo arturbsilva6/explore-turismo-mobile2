@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:guia_turismo/services/favoritos_service.dart';
 import 'package:guia_turismo/services/session_service.dart';
@@ -28,7 +30,12 @@ class FavoritosController extends ChangeNotifier {
       final sessao = SessionService();
       final email = await sessao.pegarEmail();
       final token = await sessao.pegarToken();
-      _chave = 'favoritos_v2_${token != null && token.isNotEmpty ? email : 'visitante'}';
+      final uidGoogle = Firebase.apps.isNotEmpty
+          ? FirebaseAuth.instance.currentUser?.uid : null;
+      final identidade = token != null && token.isNotEmpty
+          ? 'api_${email.isNotEmpty ? email : 'sem_email'}'
+          : uidGoogle != null ? 'google_$uidGoogle' : 'visitante';
+      _chave = 'favoritos_v2_$identidade';
       final prefs = await SharedPreferences.getInstance();
       _ids = prefs.getStringList(_chave)
               ?.map(int.tryParse).whereType<int>().toSet() ?? <int>{};
