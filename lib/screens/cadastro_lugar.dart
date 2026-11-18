@@ -1,3 +1,7 @@
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:guia_turismo/controller/favoritos_controller.dart';
+import 'package:guia_turismo/widgets/lugar_foto.dart';
 import 'package:flutter/material.dart';
 import 'package:guia_turismo/controller/lugares_controller.dart';
 import 'package:guia_turismo/models/lugares_model.dart';
@@ -26,6 +30,8 @@ class _LugaresScreenState extends State<LugaresScreen> {
   final _latitudeController = TextEditingController();
   final _longitudeController = TextEditingController();
   int _categoriaId = 1;
+  File? _fotoCadastro;
+  bool _somenteFavoritos = false;
 
   // Busca e filtro são locais: não alteram o cadastro na API.
   final _buscaController = TextEditingController();
@@ -45,6 +51,7 @@ class _LugaresScreenState extends State<LugaresScreen> {
     _latitudeController.clear();
     _longitudeController.clear();
     _categoriaId = 1;
+    _fotoCadastro = null;
 
     final formulario = GlobalKey<FormState>();
     bool salvando = false;
@@ -93,6 +100,71 @@ class _LugaresScreenState extends State<LugaresScreen> {
                               atualizarDialog(() => _categoriaId = valor);
                             }
                           },
+                  ),
+                  const SizedBox(height: 12),
+                  const Text('Fotografia do lugar (opcional)'),
+                  const SizedBox(height: 8),
+                  if (_fotoCadastro != null)
+                    SizedBox(
+                      height: 140,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.file(
+                          _fotoCadastro!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) =>
+                              const Center(child: Text('Foto indisponível')),
+                        ),
+                      ),
+                    ),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: salvando ? null : () async {
+                          try {
+                            final selecionada = await ImagePicker().pickImage(
+                              source: ImageSource.camera,
+                              imageQuality: 75,
+                              maxWidth: 1600,
+                            );
+                            if (selecionada != null && dialogContext.mounted) {
+                              atualizarDialog(() => _fotoCadastro = File(selecionada.path));
+                            }
+                          } catch (_) {
+                            if (dialogContext.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Não foi possível abrir a câmera.')),
+                              );
+                            }
+                          }
+                        },
+                        icon: const Icon(Icons.camera_alt_outlined),
+                        label: const Text('Câmera'),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: salvando ? null : () async {
+                          try {
+                            final selecionada = await ImagePicker().pickImage(
+                              source: ImageSource.gallery,
+                              imageQuality: 75,
+                              maxWidth: 1600,
+                            );
+                            if (selecionada != null && dialogContext.mounted) {
+                              atualizarDialog(() => _fotoCadastro = File(selecionada.path));
+                            }
+                          } catch (_) {
+                            if (dialogContext.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Não foi possível abrir a galeria.')),
+                              );
+                            }
+                          }
+                        },
+                        icon: const Icon(Icons.photo_library_outlined),
+                        label: const Text('Galeria'),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12),
                   BuscaLocalizacao(
@@ -148,7 +220,7 @@ class _LugaresScreenState extends State<LugaresScreen> {
                         categoriaId: _categoriaId,
                       );
                       final controller = context.read<LugaresController>();
-                      final mensagem = await controller.cadastrarLugar(lugar);
+                      final mensagem = await controller.cadastrarLugarComFoto(lugar, _fotoCadastro);
                       if (!mounted || !dialogContext.mounted) return;
                       atualizarDialog(() => salvando = false);
 
@@ -187,13 +259,20 @@ class _LugaresScreenState extends State<LugaresScreen> {
     return Scaffold(
       body: Consumer<LugaresController>(
         builder: (context, controller, _) {
+          FavoritosController? favoritos;
+          try {
+            favoritos = context.watch<FavoritosController>();
+          } on ProviderNotFoundException {
+            // Compatibilidade com telas e testes legados sem este provider.
+          }
           final termo = _termoBusca.trim().toLowerCase();
           final lugaresFiltrados = controller.lugares.where((lugar) {
             final combinaNome = lugar.nome.toLowerCase().contains(termo);
             final combinaCategoria =
                 _categoriaFiltro == null ||
                 lugar.categoriaId == _categoriaFiltro;
-            return combinaNome && combinaCategoria;
+            final combinaFavoritos = !_somenteFavoritos || (favoritos?.contem(lugar.id) ?? false);
+            return combinaNome && combinaCategoria && combinaFavoritos;
           }).toList();
 
           return Column(
@@ -273,6 +352,14 @@ class _LugaresScreenState extends State<LugaresScreen> {
                         ),
                       ],
                     ),
+                    if (favoritos != null)
+                      SwitchListTile.adaptive(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('Somente favoritos'),
+                        secondary: const Icon(Icons.favorite_outline),
+                        value: _somenteFavoritos,
+                        onChanged: (v) => setState(() => _somenteFavoritos = v),
+                      ),
                     Text(
                       '${lugaresFiltrados.length} de ${controller.lugares.length} '
                       'lugares carregados',
@@ -281,7 +368,7 @@ class _LugaresScreenState extends State<LugaresScreen> {
                   ],
                 ),
               ),
-              Expanded(child: _conteudoLugares(controller, lugaresFiltrados)),
+              Expanded(child: _conteudoLugares(controller, lugaresFiltrados, favoritos)),
             ],
           );
         },
@@ -297,6 +384,7 @@ class _LugaresScreenState extends State<LugaresScreen> {
   Widget _conteudoLugares(
     LugaresController controller,
     List<LugaresModel> lugaresFiltrados,
+    FavoritosController? favoritos,
   ) {
     if (controller.carregando && controller.lugares.isEmpty) {
       return const Center(child: CircularProgressIndicator());
@@ -356,9 +444,7 @@ class _LugaresScreenState extends State<LugaresScreen> {
                   margin: const EdgeInsets.symmetric(vertical: 5),
                   child: ListTile(
                     contentPadding: const EdgeInsets.all(12),
-                    leading: const CircleAvatar(
-                      child: Icon(Icons.location_on_outlined),
-                    ),
+                    leading: LugarFoto(url: lugar.fotoUrl),
                     title: Text(
                       lugar.nome,
                       style: const TextStyle(fontWeight: FontWeight.w600),
@@ -376,7 +462,34 @@ class _LugaresScreenState extends State<LugaresScreen> {
                           ),
                       ],
                     ),
-                    trailing: const Icon(Icons.chevron_right),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (favoritos != null)
+                          IconButton(
+                            tooltip: favoritos.contem(lugar.id)
+                                ? 'Remover dos favoritos'
+                                : 'Adicionar aos favoritos',
+                            onPressed: () async {
+                              final salvo = await favoritos!.alternar(lugar.id);
+                              if (!salvo && context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(favoritos.erro ?? 'Erro ao salvar favorito')),
+                                );
+                              }
+                            },
+                            icon: Icon(
+                              favoritos.contem(lugar.id)
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: favoritos.contem(lugar.id)
+                                  ? Theme.of(context).colorScheme.error
+                                  : null,
+                            ),
+                          ),
+                        const Icon(Icons.chevron_right),
+                      ],
+                    ),
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute<void>(
