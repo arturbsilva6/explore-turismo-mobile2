@@ -132,7 +132,7 @@ class _LugaresScreenState extends State<LugaresScreen> {
                               atualizarDialog(() => _fotoCadastro = File(selecionada.path));
                             }
                           } catch (_) {
-                            if (dialogContext.mounted) {
+                            if (mounted && dialogContext.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(content: Text('Não foi possível abrir a câmera.')),
                               );
@@ -154,7 +154,7 @@ class _LugaresScreenState extends State<LugaresScreen> {
                               atualizarDialog(() => _fotoCadastro = File(selecionada.path));
                             }
                           } catch (_) {
-                            if (dialogContext.mounted) {
+                            if (mounted && dialogContext.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(content: Text('Não foi possível abrir a galeria.')),
                               );
@@ -471,7 +471,7 @@ class _LugaresScreenState extends State<LugaresScreen> {
                                 ? 'Remover dos favoritos'
                                 : 'Adicionar aos favoritos',
                             onPressed: () async {
-                              final salvo = await favoritos!.alternar(lugar.id);
+                              final salvo = await favoritos.alternar(lugar.id);
                               if (!salvo && context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(content: Text(favoritos.erro ?? 'Erro ao salvar favorito')),
