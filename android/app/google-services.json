@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "823103324756-5scqnb1vh3nv7l86ihp8lvruv2mnmt4c.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.guia_turismo",
+            "certificate_hash": "cac86121ca634fc3264df8b0526e2b9f454eb12d"
+          }
+        },
+        {
           "client_id": "823103324756-d5bhrrjjtj3gibdtq1kqenfckn5i5lg7.apps.googleusercontent.com",
           "client_type": 3
         }

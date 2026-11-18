@@ -18,10 +18,10 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: "AIzaSyCwrUvGF4Uaj-kFSA7VX1a0eOWDosM52x4",
-    appId: "1:823103324756:android:be06f37d38d379b1f063c1",
-    messagingSenderId: "823103324756",
-    projectId: "explore-turismo",
-    storageBucket: "explore-turismo.firebasestorage.app",
+    apiKey: 'AIzaSyCwrUvGF4Uaj-kFSA7VX1a0eOWDosM52x4',
+    appId: '1:823103324756:android:be06f37d38d379b1f063c1',
+    messagingSenderId: '823103324756',
+    projectId: 'explore-turismo',
+    storageBucket: 'explore-turismo.firebasestorage.app',
   );
 }
