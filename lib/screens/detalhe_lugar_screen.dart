@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:guia_turismo/models/lugares_model.dart';
 import 'package:guia_turismo/widgets/lugar_foto.dart';
-import 'package:guia_turismo/controller/favoritos_controller.dart';
-import 'package:guia_turismo/controller/lugares_controller.dart';
+import 'package:guia_turismo/controllers/favoritos_controller.dart';
+import 'package:guia_turismo/controllers/lugares_controller.dart';
 import 'package:guia_turismo/services/galeria_service.dart';
 import 'package:guia_turismo/services/rotas_service.dart';
 import 'package:guia_turismo/services/session_service.dart';
@@ -35,7 +35,7 @@ class _DetalheLugarScreenState extends State<DetalheLugarScreen> {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Não foi possível abrir a rota: $e')),
+          const SnackBar(content: Text('Não foi possível abrir a rota. Verifique o aplicativo de mapas.')),
         );
       }
     }
