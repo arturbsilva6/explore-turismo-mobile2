@@ -10,6 +10,7 @@ class LugaresServices {
   final int limite = 30;
   static const maxPaginas = 10;
   bool limiteAtingido = false;
+  int? ultimoLugarCriadoId;
 
   // Consulta lugares já cadastrados (GET /lugares).
   Future<List<LugaresModel>> buscarLugares() async {
@@ -60,6 +61,7 @@ class LugaresServices {
 
   // Cadastra um novo lugar (POST /lugares) com token de autenticação.
   Future<String> cadastrarLugar(LugaresModel dados, String token) async {
+    ultimoLugarCriadoId = null;
     if (token.trim().isEmpty) {
       throw Exception('Você precisa fazer login antes de cadastrar um lugar.');
     }
@@ -95,6 +97,10 @@ class LugaresServices {
     }
 
     if (response.statusCode == 201) {
+      final criado = corpo['data'] is Map ? corpo['data'] :
+          corpo['lugar'] is Map ? corpo['lugar'] : corpo;
+      final id = int.tryParse((criado['id'] ?? criado['lugarId'] ?? '').toString());
+      if (id != null && id > 0) ultimoLugarCriadoId = id;
       return corpo['message']?.toString() ?? 'Lugar cadastrado com sucesso!';
     }
 
