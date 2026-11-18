@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:guia_turismo/screens/firebase_login_screen.dart';
 import 'package:guia_turismo/controller/auth_controller.dart';
 import 'package:provider/provider.dart';
+import 'package:guia_turismo/services/firebase_auth_service.dart';
+import 'package:guia_turismo/controller/favoritos_controller.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,6 +16,32 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _email = TextEditingController();
   final _senha = TextEditingController();
+  bool _entrandoGoogle = false;
+  String? _erroGoogle;
+
+  @override
+  void dispose() {
+    _email.dispose();
+    _senha.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loginGoogle() async {
+    if (_entrandoGoogle) return;
+    setState(() {
+      _entrandoGoogle = true;
+      _erroGoogle = null;
+    });
+    try {
+      await FirebaseAuthService().entrarComGoogle();
+      if (!mounted) return;
+      Navigator.of(context).pushNamedAndRemoveUntil('home', (r) => false);
+    } catch (e) {
+      if (mounted) setState(() => _erroGoogle = FirebaseAuthService.mensagemDoErro(e));
+    } finally {
+      if (mounted) setState(() => _entrandoGoogle = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +51,9 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Consumer<AuthController>(
         builder: (context, controleAuth, _) => Padding(
           padding: EdgeInsets.all(16),
-          child: Column(
+          child: ListView(
+            children: [const SizedBox(height: 60),
+              Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               TextField(
@@ -43,12 +73,26 @@ class _LoginScreenState extends State<LoginScreen> {
                   //Tentar logar
                   final logou = await controleAuth.autenticarUsuario(_email.text, _senha.text);
                   if (logou && context.mounted) {
-                    //pushNamed -> cria uma "setinha" que te permite voltar a tela anterior
-                    Navigator.pushNamed(context, 'home');
+                    try { await context.read<FavoritosController>().carregar(); }
+                    on ProviderNotFoundException { /* testes legados */ }
+                    if (context.mounted) {
+                      Navigator.pushNamedAndRemoveUntil(context, 'home', (r) => false);
+                    }
                   }
                 },
                 child: Text("Entrar"),
               ),
+              if (Firebase.apps.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                FilledButton.icon(
+                  onPressed: _entrandoGoogle ? null : _loginGoogle,
+                  icon: const Icon(Icons.account_circle_outlined),
+                  label: Text(_entrandoGoogle ? 'Conectando ao Google...' : 'Entrar com Google'),
+                ),
+                if (_erroGoogle != null)
+                  Text(_erroGoogle!, textAlign: TextAlign.center,
+                    style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              ],
               const SizedBox(height: 18),
               const Text(
                 'Autenticação do Guia Turismo (API da disciplina)',
@@ -76,6 +120,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 },
               ),
             ],
+          ),
+          ],
           ),
         ),
       ),
