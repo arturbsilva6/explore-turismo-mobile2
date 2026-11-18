@@ -44,6 +44,14 @@ void main() {
       LugaresModel.extrairFotoUrl({'foto': 'javascript:alert(1)'}),
       isNull,
     );
+    expect(
+      LugaresModel.extrairFotoUrl({'galeria': [{'urlFoto': 'uploads/foto.jpg'}]}),
+      'https://guia.liliaborges.com.br/uploads/foto.jpg',
+    );
+    expect(
+      LugaresModel.extrairFotoUrl({'foto': 'http://exemplo.com/a.png'}),
+      isNull,
+    );
   });
 
   test('favoritos da API usam JWT e métodos documentados', () async {
