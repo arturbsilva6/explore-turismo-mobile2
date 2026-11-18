@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:guia_turismo/models/lugares_model.dart';
 import 'package:http/http.dart' as http;
+import 'package:guia_turismo/services/session_service.dart';
 
 class LugaresServices {
   final http.Client? client;
@@ -96,6 +97,9 @@ class LugaresServices {
       // Algumas falhas do servidor podem não retornar JSON.
     }
 
+    if (response.statusCode == 401 || response.statusCode == 403) {
+      throw const SessaoExpiradaException();
+    }
     if (response.statusCode == 201) {
       final criado = corpo['data'] is Map ? corpo['data'] :
           corpo['lugar'] is Map ? corpo['lugar'] : corpo;
