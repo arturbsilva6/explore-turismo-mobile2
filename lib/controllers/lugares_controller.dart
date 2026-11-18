@@ -4,6 +4,7 @@ import 'package:guia_turismo/services/galeria_service.dart';
 import 'package:guia_turismo/models/lugares_model.dart';
 import 'package:guia_turismo/services/lugares_services.dart';
 import 'package:guia_turismo/services/session_service.dart';
+import 'package:guia_turismo/services/navegacao_service.dart';
 
 class LugaresController extends ChangeNotifier {
   final LugaresServices _service;
@@ -71,17 +72,24 @@ class LugaresController extends ChangeNotifier {
   }
 
   Future<String> cadastrarLugar(LugaresModel dados) async {
+    String tokenUsado = '';
     cadastrando = true;
     erroCadastro = '';
     notifyListeners();
     try {
-      final token = await SessionService().pegarToken() ?? '';
-      final mensagem = await _service.cadastrarLugar(dados, token);
+      tokenUsado = await SessionService().pegarToken() ?? '';
+      final mensagem = await _service.cadastrarLugar(dados, tokenUsado);
       // Atualiza a lista após o servidor confirmar o cadastro.
       await listaLugares();
       return mensagem;
+    } on SessaoExpiradaException {
+      erroCadastro = 'Sua sessão expirou. Entre novamente para cadastrar.';
+      if (await SessionService().invalidarSeAtual(tokenUsado)) {
+        NavegacaoService.irParaLogin();
+      }
+      return erroCadastro;
     } catch (e) {
-      erroCadastro = 'Erro ao cadastrar: $e';
+      erroCadastro = 'Não foi possível cadastrar o lugar. Verifique os dados e a conexão.';
       return erroCadastro;
     } finally {
       cadastrando = false;
