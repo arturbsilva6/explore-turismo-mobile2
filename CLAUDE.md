@@ -1,6 +1,6 @@
 # CLAUDE.md — Explore Turismo (Mobile II)
 
-> Contexto operacional para Claude Code. Atualizado em 18/11/2026.  
+> Contexto operacional para Claude Code. Atualizado em 18/11/2026.
 > **Modo inicial: somente revisão/auditoria, sem alterações no código ou no Git.**
 > Este arquivo deve ser lido em conjunto com `docs/CODEX_CONTEXTO_REVISAO_ENTREGA_FINAL.md`, que contém o contexto histórico e técnico ampliado e também serve para Claude.
 
