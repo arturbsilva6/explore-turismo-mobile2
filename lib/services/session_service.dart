@@ -33,6 +33,14 @@ class SessionService {
     return token != null && token.trim().isNotEmpty;
   }
 
+  /// Só invalida a identidade que enviou a requisição recusada.
+  Future<bool> invalidarSeAtual(String tokenUsado) async {
+    final atual = await pegarToken();
+    if (atual == null || atual != tokenUsado) return false;
+    await logout();
+    return true;
+  }
+
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
