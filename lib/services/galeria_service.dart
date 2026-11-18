@@ -5,7 +5,8 @@ import 'package:http_parser/http_parser.dart';
 
 /// Envio da foto para POST /lugares/{id}/galeria (multipart: campo foto).
 class GaleriaService {
-  GaleriaService({http.Client? client}) : _client = client;
+  GaleriaService({http.Client? client}) : this._interno(client);
+  GaleriaService._interno(this._client);
   final http.Client? _client;
 
   Future<void> enviarFoto({
