@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart' show parseHttpDate;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -94,8 +95,9 @@ class NominatimService implements GeocodificacaoService {
           'limit': '5',
           'accept-language': 'pt-BR',
         };
+        final ehCep = RegExp(r'^\d{5}-?\d{3}$').hasMatch(termo);
         final cep = termo.replaceAll('-', '');
-        if (RegExp(r'^\d{8}$').hasMatch(cep)) {
+        if (ehCep) {
           parametros.addAll({
             'postalcode': '${cep.substring(0, 5)}-${cep.substring(5)}',
             'countrycodes': 'br',
@@ -106,7 +108,7 @@ class NominatimService implements GeocodificacaoService {
         final uri = endpoint.replace(
           queryParameters: {...endpoint.queryParameters, ...parametros},
         );
-        final chave = uri
+        final chaveConsulta = uri
             .replace(
               queryParameters: {
                 ...uri.queryParameters,
@@ -114,11 +116,13 @@ class NominatimService implements GeocodificacaoService {
               },
             )
             .toString();
+        // Separa consultas de CEP dos resultados antigos por código postal.
+        final chave = ehCep ? 'viacep:$chaveConsulta' : chaveConsulta;
         Map<String, dynamic> cache = {};
         try {
-          cache =
-              jsonDecode(prefs.getString(_chaveCache) ?? '{}')
-                  as Map<String, dynamic>;
+          cache = jsonDecode(
+            prefs.getString(_chaveCache) ?? '{}',
+          ) as Map<String, dynamic>;
         } on FormatException {
           // Cache local corrompido pode ser reconstruído.
         } on TypeError {
@@ -137,12 +141,23 @@ class NominatimService implements GeocodificacaoService {
           if (itens.isEmpty || resultados.isNotEmpty) return resultados;
           cache.remove(chave);
         }
-        fila.registrarRequisicao();
         final requisicoes = client ?? http.Client();
         late http.Response resposta;
         try {
+          var destino = uri;
+          if (ehCep) {
+            final endereco = await _buscarEnderecoCep(requisicoes, cep);
+            if (endereco == null) return const [];
+            if (endereco.isNotEmpty) {
+              final parametrosEndereco = {...uri.queryParameters}
+                ..remove('postalcode')
+                ..['q'] = endereco;
+              destino = uri.replace(queryParameters: parametrosEndereco);
+            }
+          }
+          fila.registrarRequisicao();
           resposta = await requisicoes
-              .get(uri, headers: _headers)
+              .get(destino, headers: _headers)
               .timeout(const Duration(seconds: 15));
         } finally {
           // Encerra também uma requisição que tenha excedido o timeout.
@@ -206,6 +221,38 @@ class NominatimService implements GeocodificacaoService {
         );
       }
     });
+  }
+
+  // Um CEP geral pode existir sem logradouro. Nesse caso, mantém a busca
+  // pelo código postal para evitar sugerir arbitrariamente o centro da cidade.
+  Future<String?> _buscarEnderecoCep(
+    http.Client requisicoes,
+    String cep,
+  ) async {
+    final resposta = await requisicoes
+        .get(Uri.https('viacep.com.br', '/ws/$cep/json/'))
+        .timeout(const Duration(seconds: 15));
+    if (resposta.statusCode != 200) {
+      throw const GeocodificacaoException(
+        'Não foi possível consultar o CEP. Tente novamente ou busque pelo endereço.',
+      );
+    }
+    final dados = jsonDecode(utf8.decode(resposta.bodyBytes));
+    if (dados is! Map<String, dynamic>) throw const FormatException();
+    if (dados['erro'] == true || dados['erro'] == 'true') return null;
+
+    final rua = dados['logradouro'];
+    final cidade = dados['localidade'];
+    final uf = dados['uf'];
+    if (rua is! String ||
+        cidade is! String ||
+        uf is! String ||
+        cidade.trim().isEmpty ||
+        uf.trim().isEmpty) {
+      throw const FormatException();
+    }
+    if (rua.trim().isEmpty) return '';
+    return '${rua.trim()}, ${cidade.trim()}, ${uf.trim()}';
   }
 
   static const _headers = {

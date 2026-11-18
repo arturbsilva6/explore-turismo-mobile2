@@ -109,7 +109,7 @@ class _BuscaLocalizacaoState extends State<BuscaLocalizacao> {
               ),
             const SizedBox(height: 8),
             const Text(
-              'Busca: Nominatim · © OpenStreetMap contributors · ODbL',
+              'Busca: ViaCEP e Nominatim · © OpenStreetMap contributors · ODbL',
               style: TextStyle(fontSize: 12),
             ),
             const SelectableText(

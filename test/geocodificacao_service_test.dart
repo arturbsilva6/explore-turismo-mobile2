@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -46,37 +47,57 @@ void main() {
     },
   );
 
-  test(
-    'CEP com e sem hífen usa busca estruturada brasileira e cache',
-    () async {
-      var chamadas = 0;
-      final service = servico((request) async {
-        chamadas++;
-        expect(request.url.queryParameters['postalcode'], '01001-000');
-        expect(request.url.queryParameters['countrycodes'], 'br');
-        expect(request.url.queryParameters.containsKey('q'), isFalse);
-        return http.Response.bytes(utf8.encode(jsonEncode([resultado()])), 200);
-      });
-      await service.buscar('01001000');
-      await service.buscar('01001-000');
-      expect(chamadas, 1);
-    },
-  );
-
-  test(
-    'cache persistente reutilizado por outra instância e guarda resultado vazio',
-    () async {
-      var chamadas = 0;
-      Future<http.Response> handler(http.Request _) async {
-        chamadas++;
-        return http.Response('[]', 200);
+  test('CEP com e sem hífen resolve a rua e compartilha o cache', () async {
+    final chamadas = <String>[];
+    final service = servico((request) async {
+      chamadas.add(request.url.host);
+      if (request.url.host == 'viacep.com.br') {
+        expect(request.url.path, '/ws/18143750/json/');
+        return http.Response.bytes(
+          utf8.encode(
+            jsonEncode({
+              'logradouro': 'Rua Getulio Ribeiro dos Santos',
+              'localidade': 'São Roque',
+              'uf': 'SP',
+            }),
+          ),
+          200,
+        );
       }
+      expect(
+        request.url.queryParameters['q'],
+        'Rua Getulio Ribeiro dos Santos, São Roque, SP',
+      );
+      expect(request.url.queryParameters['countrycodes'], 'br');
+      expect(request.url.queryParameters, isNot(contains('postalcode')));
+      return http.Response(jsonEncode([resultado()]), 200);
+    });
 
-      expect(await servico(handler).buscar('Endereço inexistente'), isEmpty);
-      expect(await servico(handler).buscar('endereço   inexistente'), isEmpty);
-      expect(chamadas, 1);
-    },
-  );
+    expect(await service.buscar('18143750'), hasLength(1));
+    expect(await service.buscar('18143-750'), hasLength(1));
+    expect(chamadas, ['viacep.com.br', 'nominatim.openstreetmap.org']);
+  });
+
+  test('CEP inexistente retorna vazio sem consultar o Nominatim', () async {
+    final service = servico((request) async {
+      expect(request.url.host, 'viacep.com.br');
+      return http.Response('{"erro":"true"}', 200);
+    });
+
+    expect(await service.buscar('99999-999'), isEmpty);
+  });
+
+  test('cache persistente reutilizado por outra instância e guarda resultado vazio', () async {
+    var chamadas = 0;
+    Future<http.Response> handler(http.Request _) async {
+      chamadas++;
+      return http.Response('[]', 200);
+    }
+
+    expect(await servico(handler).buscar('Endereço inexistente'), isEmpty);
+    expect(await servico(handler).buscar('endereço   inexistente'), isEmpty);
+    expect(chamadas, 1);
+  });
 
   test('cache vencido e cache corrompido são reconstruídos', () async {
     final prefs = await SharedPreferences.getInstance();
@@ -176,15 +197,13 @@ void main() {
         expect(chamadas, 1); // Sem repetição automática.
       }
       await expectLater(
-        servico(
-          (_) async => http.Response('inválido', 200),
-        ).buscar('Rua teste'),
+        servico((_) async => http.Response('inválido', 200))
+            .buscar('Rua teste'),
         throwsA(isA<GeocodificacaoException>()),
       );
       await expectLater(
-        servico(
-          (_) async => throw http.ClientException('offline'),
-        ).buscar('Rua teste'),
+        servico((_) async => throw http.ClientException('offline'))
+            .buscar('Rua teste'),
         throwsA(isA<GeocodificacaoException>()),
       );
     },
