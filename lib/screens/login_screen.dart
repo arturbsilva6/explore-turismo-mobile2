@@ -5,7 +5,7 @@ import 'package:guia_turismo/controller/auth_controller.dart';
 import 'package:provider/provider.dart';
 import 'package:guia_turismo/services/firebase_auth_service.dart';
 import 'package:guia_turismo/services/session_service.dart';
-import 'package:guia_turismo/controller/favoritos_controller.dart';
+import 'package:guia_turismo/controllers/favoritos_controller.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -35,10 +35,12 @@ class _LoginScreenState extends State<LoginScreen> {
     });
     try {
       await FirebaseAuthService().entrarComGoogle();
-      // Não reutiliza JWT da API acadêmica quando a pessoa entra pelo Google.
-      await SessionService().logout();
+      // Descarta imediatamente favoritos antigos; só então limpa o JWT da API.
       if (!mounted) return;
-      await context.read<FavoritosController>().carregar();
+      final favoritos = context.read<FavoritosController>();
+      favoritos.limpar();
+      await SessionService().logout();
+      await favoritos.carregar();
       if (!mounted) return;
       Navigator.of(context).pushNamedAndRemoveUntil('home', (r) => false);
     } catch (e) {
@@ -83,7 +85,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       try { await FirebaseAuthService().sair(); } catch (_) {}
                     }
                     if (!context.mounted) return;
-                    try { await context.read<FavoritosController>().carregar(); }
+                    try {
+                      final favoritos = context.read<FavoritosController>();
+                      favoritos.limpar();
+                      await favoritos.carregar();
+                    }
                     on ProviderNotFoundException { /* testes legados */ }
                     if (context.mounted) {
                       Navigator.pushNamedAndRemoveUntil(context, 'home', (r) => false);
