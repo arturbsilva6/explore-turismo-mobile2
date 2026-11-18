@@ -3,7 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:guia_turismo/services/firebase_auth_service.dart';
 import 'package:guia_turismo/services/session_service.dart';
 import 'package:guia_turismo/controllers/favoritos_controller.dart';
-import 'package:guia_turismo/controller/theme_controller.dart';
+import 'package:guia_turismo/controllers/theme_controller.dart';
 import 'package:guia_turismo/screens/camera_screen.dart';
 import 'package:guia_turismo/screens/cadastro_lugar.dart';
 import 'package:provider/provider.dart';
