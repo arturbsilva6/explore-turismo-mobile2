@@ -8,6 +8,9 @@
 */
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform, kIsWeb;
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:guia_turismo/controller/favoritos_controller.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:guia_turismo/firebase_options.dart';
 import 'package:guia_turismo/controller/auth_controller.dart';
@@ -25,15 +28,21 @@ import 'package:provider/provider.dart';
  // rode com --dart-define=FIREBASE_ENABLED=true para habilitar a demonstração.
 const bool firebaseHabilitado = bool.fromEnvironment(
   'FIREBASE_ENABLED',
-  defaultValue: false,
+  defaultValue: true,
 );
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (firebaseHabilitado) {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+  if (firebaseHabilitado && !kIsWeb &&
+      defaultTargetPlatform == TargetPlatform.android) {
+    try {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    } catch (erro) {
+      debugPrint('Firebase indisponível: $erro');
+      // API acadêmica permanece utilizável se Firebase falhar.
+    }
   }
   runApp(const Inicializar());
 }
@@ -57,6 +66,7 @@ class _InicializarState extends State<Inicializar> {
       ChangeNotifierProvider(create: (_) => AuthController()),
       ChangeNotifierProvider(create: (_) => ThemeController()),
       ChangeNotifierProvider(create: (_) => CameraController()),
+      ChangeNotifierProvider(create: (_) => FavoritosController()..carregar()),
     ],
     child: Consumer<ThemeController>(
         builder: (context, controllerThema, child) => MaterialApp(
@@ -64,7 +74,8 @@ class _InicializarState extends State<Inicializar> {
         theme: controllerThema.temaClaro(),
         darkTheme: controllerThema.temaEscuro(),
         themeMode: controllerThema.temaAtual,
-        initialRoute: 'login',
+        initialRoute: Firebase.apps.isNotEmpty &&
+            FirebaseAuth.instance.currentUser != null ? 'home' : 'login',
         //Define as rotas e em quais classes devem ser chamadas
         routes: {
           'login': (context) => LoginScreen(),
