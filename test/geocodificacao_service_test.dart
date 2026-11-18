@@ -70,7 +70,7 @@ void main() {
       );
       expect(request.url.queryParameters['countrycodes'], 'br');
       expect(request.url.queryParameters, isNot(contains('postalcode')));
-      return http.Response(jsonEncode([resultado()]), 200);
+      return http.Response.bytes(utf8.encode(jsonEncode([resultado()])), 200);
     });
 
     expect(await service.buscar('18143750'), hasLength(1));
