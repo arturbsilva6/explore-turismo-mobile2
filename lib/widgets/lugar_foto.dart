@@ -20,6 +20,19 @@ class LugarFoto extends StatelessWidget {
             ? Image.network(
                 url!,
                 fit: BoxFit.cover,
+                cacheWidth: (tamanho * MediaQuery.devicePixelRatioOf(context)).ceil(),
+                cacheHeight: (tamanho * MediaQuery.devicePixelRatioOf(context)).ceil(),
+                loadingBuilder: (_, child, progress) => progress == null
+                    ? child
+                    : ColoredBox(
+                        color: cores.primaryContainer,
+                        child: const Center(
+                          child: SizedBox(
+                            width: 20, height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                      ),
                 errorBuilder: (_, _, _) => _semImagem(cores),
               )
             : _semImagem(cores),
