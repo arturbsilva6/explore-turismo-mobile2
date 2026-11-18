@@ -20,6 +20,7 @@ class MapaScreen extends StatefulWidget {
 
 class _MapaScreenState extends State<MapaScreen> {
   bool _erroTiles = false;
+  bool _mapaPronto = false;
   final MapController _mapaController = MapController();
   LatLng? _minhaPosicao;
   bool _buscandoGps = false;
@@ -44,7 +45,7 @@ class _MapaScreenState extends State<MapaScreen> {
       if (!mounted) return;
       final ponto = LatLng(posicao.latitude, posicao.longitude);
       setState(() => _minhaPosicao = ponto);
-      _mapaController.move(ponto, 15);
+      if (_mapaPronto) _mapaController.move(ponto, 15);
     } catch (e) {
       if (mounted) setState(() => _erroGps = e.toString());
     } finally {
@@ -128,78 +129,27 @@ class _MapaScreenState extends State<MapaScreen> {
   Widget build(BuildContext context) {
     final controller = context.watch<LugaresController>();
     final cores = Theme.of(context).colorScheme;
-    if (controller.carregando) {
-      return const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Carregando lugares no mapa…'),
-          ],
-        ),
-      );
-    }
+    // GPS e mapa não dependem da API: inclusive durante loading/erro/lista vazia.
     final lugares = controller.lugares
         .where((l) => l.coordenadasValidas &&
             (_filtroCategoria == null || l.categoriaId == _filtroCategoria))
         .toList();
-    if (controller.erro.isEmpty && _filtroCategoria != null &&
-        lugares.isEmpty && controller.lugares.any((l) => l.coordenadasValidas)) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Nenhum lugar dessa categoria no mapa.'),
-            TextButton(
-              onPressed: () => setState(() => _filtroCategoria = null),
-              child: const Text('Limpar filtro'),
-            ),
-          ],
-        ),
-      );
-    }
-    if (controller.erro.isNotEmpty || lugares.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                controller.erro.isNotEmpty
-                    ? Icons.wifi_off
-                    : Icons.map_outlined,
-                size: 56,
-                color: cores.primary,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                controller.erro.isNotEmpty
-                    ? 'Não foi possível carregar os lugares. Verifique sua conexão.'
-                    : controller.lugares.isEmpty
-                    ? 'Nenhum lugar cadastrado.'
-                    : 'Nenhum lugar possui coordenadas válidas para o mapa.',
-                textAlign: TextAlign.center,
-              ),
-              if (controller.limiteAtingido && controller.erro.isEmpty)
-                const Text('A consulta atingiu o limite de páginas.'),
-              const SizedBox(height: 16),
-              FilledButton.icon(
-                onPressed: controller.listaLugares,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Tentar novamente'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
     final pontos = lugares
         .map((l) => LatLng(l.latitude.toDouble(), l.longitude.toDouble()))
         .toList();
+    final mensagemSemLugares = controller.erro.isNotEmpty
+        ? 'Não foi possível atualizar os lugares. O GPS continua disponível.'
+        : controller.lugares.isEmpty
+            ? 'Nenhum lugar cadastrado. Você ainda pode usar o GPS.'
+            : _filtroCategoria != null && lugares.isEmpty
+                ? 'Nenhum lugar desta categoria no mapa.'
+                : lugares.isEmpty
+                    ? 'Nenhum lugar possui coordenadas válidas.'
+                    : null;
     return Column(
       children: [
+        if (controller.carregando)
+          const LinearProgressIndicator(),
         Material(
           color: cores.surfaceContainer,
           child: ListTile(
@@ -220,6 +170,29 @@ class _MapaScreenState extends State<MapaScreen> {
             ),
           ),
         ),
+        if (mensagemSemLugares != null)
+          Material(
+            color: cores.surfaceContainerLow,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                children: [
+                  Expanded(child: Text(mensagemSemLugares)),
+                  if (_filtroCategoria != null && controller.erro.isEmpty)
+                    TextButton(
+                      onPressed: () => setState(() => _filtroCategoria = null),
+                      child: const Text('Limpar filtro'),
+                    ),
+                  if (controller.erro.isNotEmpty)
+                    IconButton(
+                      tooltip: 'Tentar novamente',
+                      onPressed: controller.listaLugares,
+                      icon: const Icon(Icons.refresh),
+                    ),
+                ],
+              ),
+            ),
+          ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: Row(
@@ -268,7 +241,16 @@ class _MapaScreenState extends State<MapaScreen> {
           child: FlutterMap(
             mapController: _mapaController,
             options: MapOptions(
-              initialCenter: pontos.first,
+              initialCenter: pontos.isNotEmpty
+                  ? pontos.first
+                  : (_minhaPosicao ?? LatLng(-23.55052, -46.63330)),
+              onMapReady: () {
+                if (!mounted) return;
+                _mapaPronto = true;
+                if (_minhaPosicao != null) {
+                  _mapaController.move(_minhaPosicao!, 15);
+                }
+              },
               initialZoom: 13,
               minZoom: 2,
               maxZoom: 19,
