@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:guia_turismo/services/localizacao_atual_service.dart';
+import 'package:guia_turismo/services/rotas_service.dart';
+import 'package:guia_turismo/widgets/lugar_foto.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
@@ -8,7 +11,8 @@ import 'package:guia_turismo/screens/detalhe_lugar_screen.dart';
 
 class MapaScreen extends StatefulWidget {
   final TileProvider? tileProvider;
-  const MapaScreen({super.key, this.tileProvider});
+  final LocalizacaoAtualService? localizacaoService;
+  const MapaScreen({super.key, this.tileProvider, this.localizacaoService});
 
   @override
   State<MapaScreen> createState() => _MapaScreenState();
@@ -16,6 +20,37 @@ class MapaScreen extends StatefulWidget {
 
 class _MapaScreenState extends State<MapaScreen> {
   bool _erroTiles = false;
+  final MapController _mapaController = MapController();
+  LatLng? _minhaPosicao;
+  bool _buscandoGps = false;
+  String? _erroGps;
+  int? _filtroCategoria;
+
+  @override
+  void dispose() {
+    _mapaController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _localizar() async {
+    if (_buscandoGps) return;
+    setState(() {
+      _buscandoGps = true;
+      _erroGps = null;
+    });
+    try {
+      final posicao = await (widget.localizacaoService ?? LocalizacaoAtualService())
+          .obterPosicao();
+      if (!mounted) return;
+      final ponto = LatLng(posicao.latitude, posicao.longitude);
+      setState(() => _minhaPosicao = ponto);
+      _mapaController.move(ponto, 15);
+    } catch (e) {
+      if (mounted) setState(() => _erroGps = e.toString());
+    } finally {
+      if (mounted) setState(() => _buscandoGps = false);
+    }
+  }
 
   void _mostrarLugar(BuildContext context, LugaresModel lugar) {
     showModalBottomSheet<void>(
@@ -28,14 +63,47 @@ class _MapaScreenState extends State<MapaScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(lugar.nome, style: Theme.of(context).textTheme.titleLarge),
+              Row(
+                children: [
+                  LugarFoto(url: lugar.fotoUrl),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text(lugar.nome, style: Theme.of(context).textTheme.titleLarge)),
+                ],
+              ),
               const SizedBox(height: 8),
               Text(
                 lugar.categoria?.trim().isNotEmpty == true
                     ? lugar.categoria!
                     : 'Sem categoria',
               ),
-              const SizedBox(height: 16),
+              if (_minhaPosicao != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  'Distância aproximada: ${(LocalizacaoAtualService.distanciaMetros(
+                    _minhaPosicao!.latitude, _minhaPosicao!.longitude,
+                    lugar.latitude.toDouble(), lugar.longitude.toDouble(),
+                  ) / 1000).toStringAsFixed(1)} km',
+                ),
+              ],
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.directions_outlined),
+                label: const Text('Como chegar'),
+                onPressed: () async {
+                  try {
+                    await RotasService().comoChegar(
+                      lugar.latitude.toDouble(), lugar.longitude.toDouble(),
+                    );
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(e.toString())),
+                      );
+                    }
+                  }
+                },
+              ),
+              const SizedBox(height: 12),
               FilledButton.icon(
                 icon: const Icon(Icons.info_outline),
                 label: const Text('Ver detalhes'),
@@ -73,7 +141,8 @@ class _MapaScreenState extends State<MapaScreen> {
       );
     }
     final lugares = controller.lugares
-        .where((l) => l.coordenadasValidas)
+        .where((l) => l.coordenadasValidas &&
+            (_filtroCategoria == null || l.categoriaId == _filtroCategoria))
         .toList();
     if (controller.erro.isNotEmpty || lugares.isEmpty) {
       return Center(
@@ -136,6 +205,42 @@ class _MapaScreenState extends State<MapaScreen> {
             ),
           ),
         ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          child: Row(
+            children: [
+              const Icon(Icons.filter_list, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: DropdownButton<int?>(
+                  isExpanded: true,
+                  value: _filtroCategoria,
+                  items: const [
+                    DropdownMenuItem<int?>(value: null, child: Text('Todas as categorias')),
+                    DropdownMenuItem<int?>(value: 1, child: Text('Praias')),
+                    DropdownMenuItem<int?>(value: 2, child: Text('Points')),
+                    DropdownMenuItem<int?>(value: 3, child: Text('Ilhas')),
+                    DropdownMenuItem<int?>(value: 4, child: Text('Gastronomia')),
+                    DropdownMenuItem<int?>(value: 5, child: Text('Dicas')),
+                  ],
+                  onChanged: (id) => setState(() => _filtroCategoria = id),
+                ),
+              ),
+              IconButton(
+                tooltip: 'Minha localização GPS',
+                onPressed: _buscandoGps ? null : _localizar,
+                icon: _buscandoGps
+                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.my_location),
+              ),
+            ],
+          ),
+        ),
+        if (_erroGps != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(_erroGps!, style: TextStyle(color: cores.error)),
+          ),
         if (_erroTiles)
           Padding(
             padding: const EdgeInsets.all(12),
@@ -146,6 +251,7 @@ class _MapaScreenState extends State<MapaScreen> {
           ),
         Expanded(
           child: FlutterMap(
+            mapController: _mapaController,
             options: MapOptions(
               initialCenter: pontos.first,
               initialZoom: 13,
@@ -191,7 +297,23 @@ class _MapaScreenState extends State<MapaScreen> {
                           backgroundColor: cores.surface,
                           foregroundColor: cores.primary,
                         ),
-                        icon: const Icon(Icons.location_on, size: 32),
+                        icon: lugares[i].fotoUrl == null
+                            ? const Icon(Icons.location_on, size: 32)
+                            : LugarFoto(url: lugares[i].fotoUrl, tamanho: 44),
+                      ),
+                    ),
+                  if (_minhaPosicao != null)
+                    Marker(
+                      point: _minhaPosicao!,
+                      width: 56,
+                      height: 56,
+                      child: Semantics(
+                        label: 'Sua localização atual',
+                        child: const Icon(
+                          Icons.my_location,
+                          color: Colors.blue,
+                          size: 42,
+                        ),
                       ),
                     ),
                 ],
