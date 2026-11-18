@@ -4,7 +4,8 @@ import 'package:http/http.dart' as http;
 
 /// Endpoints documentados em /favoritos (JWT da API acadêmica).
 class FavoritosService {
-  FavoritosService({http.Client? client}) : _client = client;
+  FavoritosService({http.Client? client}) : this._interno(client);
+  FavoritosService._interno(this._client);
   final http.Client? _client;
   static final Uri _endpoint = Uri.parse('https://guia.liliaborges.com.br/favoritos');
 
