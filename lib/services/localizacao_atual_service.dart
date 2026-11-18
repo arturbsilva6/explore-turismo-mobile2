@@ -20,6 +20,7 @@ class LocalizacaoAtualService {
     if (permissao == LocationPermission.deniedForever) {
       throw const LocalizacaoIndisponivel(
         'Localização bloqueada permanentemente. Abra as permissões do aplicativo.',
+        exigeConfiguracoes: true,
       );
     }
     try {
@@ -36,6 +37,8 @@ class LocalizacaoAtualService {
     }
   }
 
+  Future<bool> abrirConfiguracoes() => Geolocator.openAppSettings();
+
   static double distanciaMetros(
     double latitudeOrigem, double longitudeOrigem,
     double latitudeDestino, double longitudeDestino,
@@ -46,7 +49,9 @@ class LocalizacaoAtualService {
 
 class LocalizacaoIndisponivel implements Exception {
   final String mensagem;
-  const LocalizacaoIndisponivel(this.mensagem);
+  final bool exigeConfiguracoes;
+  const LocalizacaoIndisponivel(this.mensagem,
+      {this.exigeConfiguracoes = false});
   @override
   String toString() => mensagem;
 }
