@@ -21,11 +21,11 @@ import 'package:guia_turismo/screens/camera_screen.dart';
 import 'package:guia_turismo/screens/home_screen.dart';
 import 'package:guia_turismo/screens/login_screen.dart';
 import 'package:guia_turismo/screens/cadastro_lugar.dart';
+import 'package:guia_turismo/services/session_service.dart';
 import 'package:provider/provider.dart';
 
-// Por padrão, o aplicativo mantém a API da faculdade funcionando.
- // Após executar flutterfire configure no seu próprio projeto Firebase,
- // rode com --dart-define=FIREBASE_ENABLED=true para habilitar a demonstração.
+// No Android, Firebase está ativo por padrão; a API acadêmica é independente.
+// A flag FIREBASE_ENABLED=false desativa Firebase em testes ou ambientes sem OAuth.
 const bool firebaseHabilitado = bool.fromEnvironment(
   'FIREBASE_ENABLED',
   defaultValue: true,
@@ -44,11 +44,15 @@ Future<void> main() async {
       // API acadêmica permanece utilizável se Firebase falhar.
     }
   }
-  runApp(const Inicializar());
+  // A sessão da API é independente da autenticação Firebase e também persiste.
+  final sessaoApi = await SessionService().temSessaoApi();
+  runApp(Inicializar(sessaoApiRestaurada: sessaoApi));
 }
 
 class Inicializar extends StatefulWidget {
-  const Inicializar({super.key});
+  const Inicializar({super.key, this.sessaoApiRestaurada = false});
+
+  final bool sessaoApiRestaurada;
 
   @override
   State<Inicializar> createState() => _InicializarState();
@@ -74,8 +78,10 @@ class _InicializarState extends State<Inicializar> {
         theme: controllerThema.temaClaro(),
         darkTheme: controllerThema.temaEscuro(),
         themeMode: controllerThema.temaAtual,
-        initialRoute: Firebase.apps.isNotEmpty &&
-            FirebaseAuth.instance.currentUser != null ? 'home' : 'login',
+        initialRoute: widget.sessaoApiRestaurada ||
+                (Firebase.apps.isNotEmpty &&
+                    FirebaseAuth.instance.currentUser != null)
+            ? 'home' : 'login',
         //Define as rotas e em quais classes devem ser chamadas
         routes: {
           'login': (context) => LoginScreen(),
