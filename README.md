@@ -136,3 +136,9 @@ aceito automaticamente pela API.
 A configuração da conta Firebase, do aplicativo Android e do OAuth Google
 é feita pelo próprio estudante. Veja [FIREBASE_AULA.md](FIREBASE_AULA.md)
 para concluir a instalação e validar no emulador.
+
+## Entrega final Mobile II
+
+A implementação de GPS do aparelho, favoritos, galeria com foto, filtro no mapa, rotas e melhorias de login encontra-se em desenvolvimento na branch `feat/entrega-final-mobile2` (PR #3). Consulte [ENTREGA_FINAL.md](ENTREGA_FINAL.md) para os limites conhecidos e o roteiro de testes no celular.
+
+A imagem externa de placeholder `placehold.co/150x150.png` foi removida da tela de câmera nesta branch.
