@@ -40,7 +40,7 @@ class _DetalheLugarScreenState extends State<DetalheLugarScreen> {
     }
   }
 
-  Future<void> _anexarFoto(BuildContext context) async {
+  Future<void> _anexarFoto() async {
     if (_enviandoFoto) return;
     final tokenAntes = await SessionService().pegarToken() ?? '';
     if (!mounted) return;
@@ -170,7 +170,7 @@ class _DetalheLugarScreenState extends State<DetalheLugarScreen> {
           ),
           const SizedBox(height: 12),
           OutlinedButton.icon(
-            onPressed: _enviandoFoto ? null : () => _anexarFoto(context),
+            onPressed: _enviandoFoto ? null : _anexarFoto,
             icon: _enviandoFoto
                 ? const SizedBox(
                     width: 20, height: 20,
