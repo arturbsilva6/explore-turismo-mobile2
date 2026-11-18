@@ -95,7 +95,7 @@ class _MapaScreenState extends State<MapaScreen> {
                     await RotasService().comoChegar(
                       lugar.latitude.toDouble(), lugar.longitude.toDouble(),
                     );
-                  } catch (e) {
+                  } catch (_) {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Não foi possível abrir a rota no aplicativo de mapas.')),
