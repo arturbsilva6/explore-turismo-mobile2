@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:guia_turismo/services/galeria_service.dart';
 import 'package:guia_turismo/models/lugares_model.dart';
 import 'package:guia_turismo/services/lugares_services.dart';
 import 'package:guia_turismo/services/session_service.dart';
@@ -32,6 +34,39 @@ class LugaresController extends ChangeNotifier {
     } finally {
       carregando = false;
       notifyListeners();
+    }
+  }
+
+  Future<String> cadastrarLugarComFoto(LugaresModel dados, File? imagem) async {
+    if (imagem == null) return cadastrarLugar(dados);
+    final idsAntes = _lugares.map((l) => l.id).toSet();
+    final mensagem = await cadastrarLugar(dados);
+    if (erroCadastro.isNotEmpty) return mensagem;
+    int? id = _service.ultimoLugarCriadoId;
+    if (id == null) {
+      // Se o POST não informou o ID, só atribuímos a foto quando existir
+      // exatamente um novo registro compatível após atualizar a listagem.
+      final candidatos = _lugares.where((l) =>
+          !idsAntes.contains(l.id) &&
+          l.nome.trim().toLowerCase() == dados.nome.trim().toLowerCase() &&
+          (l.latitude.toDouble() - dados.latitude.toDouble()).abs() < 0.00001 &&
+          (l.longitude.toDouble() - dados.longitude.toDouble()).abs() < 0.00001
+      ).toList();
+      if (candidatos.length == 1) id = candidatos.single.id;
+    }
+    if (id == null) {
+      return '$mensagem Foto não enviada: não foi possível identificar '
+          'com segurança o ID do novo lugar. Adicione a foto pelos detalhes.';
+    }
+    try {
+      final token = await SessionService().pegarToken() ?? '';
+      await GaleriaService().enviarFoto(
+        lugarId: id, caminho: imagem.path, token: token,
+      );
+      await listaLugares();
+      return '$mensagem Foto adicionada à galeria.';
+    } catch (e) {
+      return '$mensagem Porém, a foto não foi enviada: $e';
     }
   }
 
