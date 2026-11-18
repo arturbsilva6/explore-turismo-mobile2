@@ -6,6 +6,7 @@ class LugaresModel {
   final num longitude;
   final String? descricao;
   final int categoriaId;
+  final String? fotoUrl;
 
   bool get coordenadasValidas =>
       latitude.isFinite &&
@@ -23,6 +24,7 @@ class LugaresModel {
     required this.longitude,
     this.descricao,
     required this.categoriaId,
+    this.fotoUrl,
   });
 
   // Converte a resposta do GET /lugares em um objeto Dart.
@@ -39,8 +41,31 @@ class LugaresModel {
       longitude: _lerNumero(json['longitude']),
       descricao: json['descricao']?.toString(),
       categoria: nomeCategoria,
-      categoriaId: _lerIdentificador(json['categoriaId']),
+      categoriaId: _lerIdentificador(json['categoriaId'] ?? json['categoria_id']),
+      fotoUrl: extrairFotoUrl(json),
     );
+  }
+
+  static String? extrairFotoUrl(Map<String, dynamic> json) {
+    // A API pode fornecer capa/foto ou uma galeria de fotos.
+    Object? valor = json['fotoUrl'] ?? json['foto_url'] ??
+        json['imagem'] ?? json['foto'] ?? json['urlImagem'] ?? json['capa'];
+    final galeria = json['galeria'] ?? json['fotos'];
+    if (valor == null && galeria is List && galeria.isNotEmpty) {
+      valor = galeria.first;
+    }
+    if (valor is Map) {
+      valor = valor['url'] ?? valor['urlFoto'] ?? valor['caminho'] ??
+          valor['foto'] ?? valor['imagem'];
+    }
+    if (valor is! String || valor.trim().isEmpty) return null;
+    final uri = Uri.tryParse(valor.trim());
+    if (uri == null) return null;
+    if (uri.scheme == 'https') return uri.toString();
+    if (uri.hasScheme || uri.host.isNotEmpty || !valor.trim().startsWith('/')) {
+      return null;
+    }
+    return Uri.parse('https://guia.liliaborges.com.br').resolveUri(uri).toString();
   }
 
   static int _lerIdentificador(dynamic valor) {
@@ -84,5 +109,6 @@ class LugaresModel {
     'categoria': categoria,
     'descricao': descricao,
     'categoriaId': categoriaId,
+    'fotoUrl': fotoUrl,
   };
 }
