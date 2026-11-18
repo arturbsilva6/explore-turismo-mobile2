@@ -8,21 +8,25 @@ class AuthController extends ChangeNotifier {
   String erro = '';
 
   Future<bool> autenticarUsuario(String email, String senha) async {
+    if (carregando) return false;
     carregando = true;
     erro = '';
     notifyListeners();
     try {
       final Map dados = await AuthService().autenticar(email, senha);
-      final String? token = dados['token'];
-      if (token == null) {
-        erro = 'Login ou senha inválidos!';
+      final token = dados['token'];
+      final usuario = dados['usuario'];
+      if (token is! String || token.trim().isEmpty || usuario is! Map ||
+          usuario['email'] == null || usuario['nome'] == null) {
+        erro = 'A API não retornou uma sessão válida. Tente novamente.';
         return false;
       }
+      // Salva o JWT somente depois de validar o perfil completo.
+      await SessionService().salvarUsuario(usuario);
       await SessionService().salvarToken(token);
-      await SessionService().salvarUsuario(dados['usuario']);
       return true;
     } catch (e) {
-      erro = 'Erro: ${e.toString()}';
+      erro = 'Não foi possível entrar. Confira seus dados e a conexão.';
       return false;
     } finally {
       carregando = false;
