@@ -59,15 +59,20 @@ class LugaresController extends ChangeNotifier {
       return '$mensagem Foto não enviada: não foi possível identificar '
           'com segurança o ID do novo lugar. Adicione a foto pelos detalhes.';
     }
+    final token = await SessionService().pegarToken() ?? '';
     try {
-      final token = await SessionService().pegarToken() ?? '';
       await GaleriaService().enviarFoto(
         lugarId: id, caminho: imagem.path, token: token,
       );
       await listaLugares();
       return '$mensagem Foto adicionada à galeria.';
-    } catch (e) {
-      return '$mensagem Porém, a foto não foi enviada: $e';
+    } on SessaoExpiradaException {
+      if (await SessionService().invalidarSeAtual(token)) {
+        NavegacaoService.irParaLogin();
+      }
+      return '$mensagem Porém, a foto não foi enviada: sessão expirada.';
+    } catch (_) {
+      return '$mensagem Porém, a foto não foi enviada. Confira a conexão.';
     }
   }
 
