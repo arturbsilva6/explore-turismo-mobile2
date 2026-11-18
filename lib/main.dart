@@ -1,22 +1,15 @@
-/*
-  Para permitir o app a acessar a camera tem que dar permissões, que estão em:
-  android/app/src/main/AndroidManifest.xml - Linha 2
-
-  Para mudar o texto das configurações de "Deseja permitir que o aplicativo acesse camera e bla bla"
-  Se não me engano é importante para IOS:
-  ios/Runner/info.plist - Linhas 70 a 73
-*/
+// Permissões de câmera/localização: AndroidManifest.xml e ios/Runner/Info.plist.
 
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform, kIsWeb;
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:guia_turismo/controller/favoritos_controller.dart';
+import 'package:guia_turismo/controllers/favoritos_controller.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:guia_turismo/firebase_options.dart';
-import 'package:guia_turismo/controller/auth_controller.dart';
-import 'package:guia_turismo/controller/camera_controller.dart';
-import 'package:guia_turismo/controller/lugares_controller.dart';
-import 'package:guia_turismo/controller/theme_controller.dart';
+import 'package:guia_turismo/controllers/auth_controller.dart';
+import 'package:guia_turismo/controllers/camera_controller.dart';
+import 'package:guia_turismo/controllers/lugares_controller.dart';
+import 'package:guia_turismo/controllers/theme_controller.dart';
 import 'package:guia_turismo/screens/camera_screen.dart';
 import 'package:guia_turismo/screens/home_screen.dart';
 import 'package:guia_turismo/screens/login_screen.dart';
@@ -62,7 +55,7 @@ class Inicializar extends StatefulWidget {
 class _InicializarState extends State<Inicializar> {
   @override
   Widget build(BuildContext context) {
-    /* 
+    /*
     (_) -> BuildContext
       Escuta as mudanças e "compartilha" o controller com o resto do código
     */
