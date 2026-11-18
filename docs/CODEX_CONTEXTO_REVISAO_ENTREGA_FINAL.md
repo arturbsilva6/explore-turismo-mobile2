@@ -1,7 +1,7 @@
 # Explore Turismo — Contexto completo e roteiro de revisão para o Codex
 
-> **Atualização de referência:** 18/11/2026 (horário de Brasília).  
-> **Fonte:** repositório GitHub, código e documentação das branches `main` e `feat/entrega-final-mobile2`, histórico dos PRs e execuções de CI.  
+> **Atualização de referência:** 18/11/2026 (horário de Brasília).
+> **Fonte:** repositório GitHub, código e documentação das branches `main` e `feat/entrega-final-mobile2`, histórico dos PRs e execuções de CI.
 > **Objetivo:** fornecer contexto suficiente para uma revisão técnica da entrega final de Mobile II. **Este arquivo não certifica o funcionamento no celular.**
 
 ## 1. Identificação do projeto e objetivo da revisão
