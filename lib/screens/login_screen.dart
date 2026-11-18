@@ -4,6 +4,7 @@ import 'package:guia_turismo/screens/firebase_login_screen.dart';
 import 'package:guia_turismo/controller/auth_controller.dart';
 import 'package:provider/provider.dart';
 import 'package:guia_turismo/services/firebase_auth_service.dart';
+import 'package:guia_turismo/services/session_service.dart';
 import 'package:guia_turismo/controller/favoritos_controller.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -34,6 +35,10 @@ class _LoginScreenState extends State<LoginScreen> {
     });
     try {
       await FirebaseAuthService().entrarComGoogle();
+      // Não reutiliza JWT da API acadêmica quando a pessoa entra pelo Google.
+      await SessionService().logout();
+      if (!mounted) return;
+      await context.read<FavoritosController>().carregar();
       if (!mounted) return;
       Navigator.of(context).pushNamedAndRemoveUntil('home', (r) => false);
     } catch (e) {
@@ -73,6 +78,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   //Tentar logar
                   final logou = await controleAuth.autenticarUsuario(_email.text, _senha.text);
                   if (logou && context.mounted) {
+                    // Substitui a sessão Firebase pela conta da API, sem misturar identidades.
+                    if (Firebase.apps.isNotEmpty) {
+                      try { await FirebaseAuthService().sair(); } catch (_) {}
+                    }
+                    if (!context.mounted) return;
                     try { await context.read<FavoritosController>().carregar(); }
                     on ProviderNotFoundException { /* testes legados */ }
                     if (context.mounted) {
