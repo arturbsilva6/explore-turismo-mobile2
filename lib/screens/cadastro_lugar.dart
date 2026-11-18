@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
-import 'package:guia_turismo/controller/favoritos_controller.dart';
+import 'package:guia_turismo/controllers/favoritos_controller.dart';
 import 'package:guia_turismo/widgets/lugar_foto.dart';
 import 'package:flutter/material.dart';
-import 'package:guia_turismo/controller/lugares_controller.dart';
+import 'package:guia_turismo/controllers/lugares_controller.dart';
 import 'package:guia_turismo/models/lugares_model.dart';
 import 'package:guia_turismo/screens/detalhe_lugar_screen.dart';
 import 'package:provider/provider.dart';
