@@ -22,6 +22,7 @@ import 'package:guia_turismo/screens/home_screen.dart';
 import 'package:guia_turismo/screens/login_screen.dart';
 import 'package:guia_turismo/screens/cadastro_lugar.dart';
 import 'package:guia_turismo/services/session_service.dart';
+import 'package:guia_turismo/services/navegacao_service.dart';
 import 'package:provider/provider.dart';
 
 // No Android, Firebase está ativo por padrão; a API acadêmica é independente.
@@ -75,6 +76,7 @@ class _InicializarState extends State<Inicializar> {
     child: Consumer<ThemeController>(
         builder: (context, controllerThema, child) => MaterialApp(
         debugShowCheckedModeBanner: false,
+        navigatorKey: NavegacaoService.navigatorKey,
         theme: controllerThema.temaClaro(),
         darkTheme: controllerThema.temaEscuro(),
         themeMode: controllerThema.temaAtual,
