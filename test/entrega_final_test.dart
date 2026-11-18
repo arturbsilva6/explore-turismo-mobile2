@@ -109,6 +109,8 @@ void main() {
     expect(find.text('Nenhuma foto selecionada'), findsOneWidget);
     expect(find.byType(Image), findsNothing);
     expect(find.text('Tirar foto'), findsOneWidget);
+    await tester.drag(find.byType(ListView), const Offset(0, -350));
+    await tester.pumpAndSettle();
     expect(find.text('Escolher da galeria'), findsOneWidget);
   });
 }
