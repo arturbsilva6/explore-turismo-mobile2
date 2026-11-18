@@ -67,6 +67,10 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Usamos sua localização, com sua permissão, para mostrar sua posição no mapa e a distância dos lugares.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Permite escolher fotos para cadastrar lugares.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Permites que eu use a camera?</string>
 	<key>NSMicrophoneUsageDescription</key>
