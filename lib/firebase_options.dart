@@ -1,7 +1,5 @@
-// Configuração Android preparada a partir de android/app/google-services.json.
-// NÃO foi gerada pelo FlutterFire CLI. Quando estiver em seu PC, rode
-// flutterfire configure --platforms=android --project=explore-turismo
-// para validar/regenerar o arquivo oficial, especialmente após cadastrar SHA-1.
+// Configuração Android do projeto Firebase explore-turismo.
+// Validada com FlutterFire CLI; reconfigure ao alterar o projeto ou app Android.
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart'
     show TargetPlatform, defaultTargetPlatform, kIsWeb;
