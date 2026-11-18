@@ -1,95 +1,83 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:guia_turismo/controller/camera_controller.dart';
 import 'package:provider/provider.dart';
 
-class CameraScreen extends StatefulWidget {
+class CameraScreen extends StatelessWidget {
   const CameraScreen({super.key});
 
-  @override
-  State<CameraScreen> createState() => _CameraScreenState();
-}
-
-class _CameraScreenState extends State<CameraScreen> {
+  Future<void> _selecionar(BuildContext context, bool camera) async {
+    final controller = context.read<CameraController>();
+    if (camera) {
+      await controller.abrirCamera();
+    } else {
+      await controller.abrirGaleria();
+    }
+    if (context.mounted && controller.erro != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(controller.erro!)),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      //Consumer vai escutar/ler o controller da camera
-      //DEIXANDO CLARO QUE A CAMERA AINDA NÃO SALVA AS FOTOS TIRADAS
-      body: Consumer<CameraController>(
-        builder: (context, controleCamera, _) => Column(
-          //Tudo bagulho de design e layout
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Stack(
-              children: [
-                Container(
-                  height: 300,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    border: Border.all(width: 2),
-                    borderRadius: BorderRadius.circular(16),
-                    //chama o metodo exibirImagem que está logo a baixo
-                    image: exibirImagem(controleCamera)
-                  ),
-                ),
-                Positioned(
-                  bottom: 8,
-                  right: 8,
-                  child: IconButton(
-                    onPressed: () => abrirModal(controleCamera, context),
-                    icon: Icon(Icons.camera_alt_rounded)
-                  ) 
-                ),
-              ],
-            )  
-          ],
-        ),
-        ),
-    );
-  }
-}
-
-
-DecorationImage exibirImagem(CameraController controleCamera){
-  //Se não houver nenhuma imagem selecionada, ele aparece como o placeholder
-  if (controleCamera.imagemSelecionada == null){
-    return DecorationImage(image: NetworkImage('https://placehold.co/150x150.png', scale: 1.0));
-  } else {
-    //Se houver, ele carrega a imagem e faz ela caber no box
-    return DecorationImage(image: FileImage(controleCamera.imagemSelecionada!),
-    fit: BoxFit.cover
-    );
-  }
-}
-
-void abrirModal(CameraController controleCamera, context) {
-  showBottomSheet(
-    context: context, 
-    builder: (context) => SafeArea(
-      bottom: true,
-      child: Wrap(
-        alignment: WrapAlignment.center,
+    final cores = Theme.of(context).colorScheme;
+    return Consumer<CameraController>(
+      builder: (context, controller, _) => ListView(
+        padding: const EdgeInsets.all(20),
         children: [
-          ListTile(
-            title: Text("Camera"),
-            leading: Icon(Icons.camera),
-            onTap: (){
-              controleCamera.abrirCamera();
-              Navigator.pop(context);
-            },
+          Text('Sua fotografia', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 6),
+          const Text('Tire uma foto ou selecione uma imagem da galeria.'),
+          const SizedBox(height: 16),
+          Container(
+            height: 300,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: cores.primaryContainer,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: cores.outlineVariant),
+            ),
+            child: controller.carregando
+                ? const Center(child: CircularProgressIndicator())
+                : controller.imagemSelecionada == null
+                    ? Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.add_a_photo_outlined, size: 72, color: cores.primary),
+                          const SizedBox(height: 12),
+                          const Text('Nenhuma foto selecionada'),
+                        ],
+                      )
+                    : Image.file(
+                        File(controller.imagemSelecionada!.path),
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => const Center(
+                          child: Text('A imagem selecionada não está disponível.'),
+                        ),
+                      ),
           ),
-          ListTile(
-            title: Text("Galeria"),
-            leading: Icon(Icons.photo_album),
-            onTap: () {
-              controleCamera.abrirGaleria();
-              Navigator.pop(context);
-            },
-          )
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: controller.carregando ? null : () => _selecionar(context, true),
+            icon: const Icon(Icons.camera_alt_outlined),
+            label: const Text('Tirar foto'),
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: controller.carregando ? null : () => _selecionar(context, false),
+            icon: const Icon(Icons.photo_library_outlined),
+            label: const Text('Escolher da galeria'),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Para anexar uma foto a um lugar, use a opção de fotografia no formulário de cadastro.',
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
-      )
     );
+  }
 }
