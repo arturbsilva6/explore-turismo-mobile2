@@ -9,6 +9,7 @@ import 'package:guia_turismo/controller/lugares_controller.dart';
 import 'package:guia_turismo/services/galeria_service.dart';
 import 'package:guia_turismo/services/rotas_service.dart';
 import 'package:guia_turismo/services/session_service.dart';
+import 'package:guia_turismo/services/navegacao_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
@@ -95,6 +96,18 @@ class _DetalheLugarScreenState extends State<DetalheLugarScreen> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Foto enviada. A imagem aparecerá quando a API disponibilizar a galeria.'),
       ));
+    } on SessaoExpiradaException {
+      if (await SessionService().invalidarSeAtual(tokenAntes)) {
+        if (mounted) {
+          context.read<FavoritosController>().limpar();
+        }
+        NavegacaoService.irParaLogin();
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Sua sessão expirou. Entre novamente para enviar a foto.'),
+        ));
+      }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
