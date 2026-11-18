@@ -20,12 +20,6 @@ jobs:
           cache: true
       - name: Resolver dependências
         run: flutter pub get
-      - name: Exportar lock para sincronização da branch
-        run: |
-          echo '===LOCK_BASE64_START==='
-          base64 -w 0 pubspec.lock
-          echo
-          echo '===LOCK_BASE64_END==='
       - name: Analisar projeto
         run: flutter analyze
       - name: Executar testes
