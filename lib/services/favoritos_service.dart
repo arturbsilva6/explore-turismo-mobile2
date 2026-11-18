@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:guia_turismo/services/session_service.dart';
 
 /// Endpoints documentados em /favoritos (JWT da API acadêmica).
 class FavoritosService {
@@ -13,6 +14,9 @@ class FavoritosService {
     final resposta = await (_client?.get(_endpoint, headers: _headers(token)) ??
         http.get(_endpoint, headers: _headers(token)))
         .timeout(const Duration(seconds: 15));
+    if (resposta.statusCode == 401 || resposta.statusCode == 403) {
+      throw const SessaoExpiradaException();
+    }
     if (resposta.statusCode != 200) {
       throw Exception('Não foi possível carregar favoritos (HTTP ${resposta.statusCode}).');
     }
@@ -43,6 +47,9 @@ class FavoritosService {
         : await (_client?.delete(uri, headers: _headers(token)) ??
                 http.delete(uri, headers: _headers(token)))
             .timeout(const Duration(seconds: 15));
+    if (resposta.statusCode == 401 || resposta.statusCode == 403) {
+      throw const SessaoExpiradaException();
+    }
     if (favorito && resposta.statusCode != 201 && resposta.statusCode != 200 ||
         !favorito && resposta.statusCode != 200 && resposta.statusCode != 204) {
       throw Exception('Erro ao salvar favorito (HTTP ${resposta.statusCode}).');
