@@ -99,7 +99,9 @@ void main() {
       );
       addTearDown(controller.dispose);
       await tester.pumpWidget(_app(controller));
-      expect(find.text('Nenhum lugar cadastrado.'), findsOneWidget);
+      expect(find.textContaining('Nenhum lugar cadastrado.'), findsOneWidget);
+      expect(find.byType(FlutterMap), findsOneWidget);
+      expect(find.byTooltip('Minha localização GPS'), findsOneWidget);
       service.itens = [_lugar(1, latitude: 91)];
       await controller.listaLugares();
       await tester.pumpAndSettle();
@@ -111,12 +113,12 @@ void main() {
       await controller.listaLugares();
       await tester.pumpAndSettle();
       expect(
-        find.textContaining('Não foi possível carregar os lugares'),
+        find.textContaining('Não foi possível atualizar os lugares'),
         findsOneWidget,
       );
       service.falhar = false;
       service.itens = [_lugar(2)];
-      await tester.tap(find.text('Tentar novamente'));
+      await tester.tap(find.byTooltip('Tentar novamente'));
       await tester.pumpAndSettle();
       expect(find.byType(FlutterMap), findsOneWidget);
     },
@@ -132,7 +134,7 @@ void main() {
     addTearDown(controller.dispose);
     final consulta = controller.listaLugares();
     await tester.pumpWidget(_app(controller));
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
     pendente.complete([]);
     await consulta;
     await tester.pumpAndSettle();
