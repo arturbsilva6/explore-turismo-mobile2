@@ -61,8 +61,8 @@ class FavoritosController extends ChangeNotifier {
           ? FirebaseAuth.instance.currentUser?.uid : null;
       final identidade = token != null && token.isNotEmpty
           ? 'api_${email.isNotEmpty ? email : 'sem_email'}'
-          : uidGoogle != null ? 'google_${uidGoogle}' : 'visitante';
-      final chave = 'favoritos_v2_${identidade}';
+          : uidGoogle != null ? 'google_$uidGoogle' : 'visitante';
+      final chave = 'favoritos_v2_$identidade';
       final prefs = await SharedPreferences.getInstance();
       if (!_vigente(geracao)) return;
       _chave = chave;
@@ -77,7 +77,7 @@ class FavoritosController extends ChangeNotifier {
           if (!_vigente(geracao)) return;
           _ids = recebidos;
           notifyListeners();
-          await prefs.setStringList(chave, recebidos.map((v) => '${v}').toList());
+          await prefs.setStringList(chave, recebidos.map((v) => '$v').toList());
         } on SessaoExpiradaException {
           if (_vigente(geracao) &&
               await SessionService().invalidarSeAtual(token)) {
@@ -124,7 +124,7 @@ class FavoritosController extends ChangeNotifier {
       }
       final prefs = await SharedPreferences.getInstance();
       if (!_vigente(geracao)) return false;
-      await prefs.setStringList(chave, proximo.map((v) => '${v}').toList());
+      await prefs.setStringList(chave, proximo.map((v) => '$v').toList());
       if (!_vigente(geracao)) return false;
       _ids = proximo;
       notifyListeners();
