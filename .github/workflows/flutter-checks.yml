@@ -24,3 +24,5 @@ jobs:
         run: flutter analyze
       - name: Executar testes
         run: flutter test
+      - name: Compilar APK Android debug
+        run: flutter build apk --debug --dart-define=FIREBASE_ENABLED=true
