@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:guia_turismo/services/favoritos_service.dart';
 import 'package:guia_turismo/services/session_service.dart';
+import 'package:guia_turismo/services/navegacao_service.dart';
 
 /// Mantém favoritos separados por identidade e ignora respostas de sessões antigas.
 class FavoritosController extends ChangeNotifier {
@@ -77,6 +78,12 @@ class FavoritosController extends ChangeNotifier {
           _ids = recebidos;
           notifyListeners();
           await prefs.setStringList(chave, recebidos.map((v) => '${v}').toList());
+        } on SessaoExpiradaException {
+          if (_vigente(geracao) &&
+              await SessionService().invalidarSeAtual(token)) {
+            limpar();
+            NavegacaoService.irParaLogin();
+          }
         } catch (_) {
           if (_vigente(geracao)) {
             erro = 'Não foi possível sincronizar favoritos. Exibindo dados salvos.';
@@ -122,6 +129,16 @@ class FavoritosController extends ChangeNotifier {
       _ids = proximo;
       notifyListeners();
       return true;
+    } on SessaoExpiradaException {
+      if (_vigente(geracao)) {
+        final tokenAtual = await SessionService().pegarToken();
+        if (tokenAtual != null &&
+            await SessionService().invalidarSeAtual(tokenAtual)) {
+          limpar();
+          NavegacaoService.irParaLogin();
+        }
+      }
+      return false;
     } catch (_) {
       if (_vigente(geracao)) {
         erro = 'Não foi possível alterar o favorito. Tente novamente.';
