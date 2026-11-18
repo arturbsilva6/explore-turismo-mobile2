@@ -1,7 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:guia_turismo/screens/firebase_login_screen.dart';
-import 'package:guia_turismo/controller/auth_controller.dart';
+import 'package:guia_turismo/controllers/auth_controller.dart';
 import 'package:provider/provider.dart';
 import 'package:guia_turismo/services/firebase_auth_service.dart';
 import 'package:guia_turismo/services/session_service.dart';
@@ -74,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               SizedBox(height: 16),
               //Fica vazio se não tiver erro
-              Text(controleAuth.erro), 
+              Text(controleAuth.erro),
               ElevatedButton(
                 onPressed: () async {
                   //Tentar logar
