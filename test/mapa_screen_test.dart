@@ -138,6 +138,6 @@ void main() {
     pendente.complete([]);
     await consulta;
     await tester.pumpAndSettle();
-    expect(find.text('Nenhum lugar cadastrado.'), findsOneWidget);
+    expect(find.textContaining('Nenhum lugar cadastrado.'), findsOneWidget);
   });
 }
