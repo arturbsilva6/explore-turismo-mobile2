@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart'
 
 // A classe DefaultFirebaseOptions junta as informações e funções deste assunto em um só lugar.
 class DefaultFirebaseOptions {
+  // Confere se estamos no Android, que é a plataforma configurada para o Firebase.
   static FirebaseOptions get currentPlatform {
     // Esse teste decide se o próximo passo deve acontecer.
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
@@ -21,10 +22,15 @@ class DefaultFirebaseOptions {
 
   // Guarda um valor que será usado para decidir ou mostrar alguma informação.
   static const FirebaseOptions android = FirebaseOptions(
+    // Essa chave identifica o projeto Firebase para o app; não é a senha de um usuário.
     apiKey: 'AIzaSyCwrUvGF4Uaj-kFSA7VX1a0eOWDosM52x4',
+    // Código que identifica esta instalação Android dentro do Firebase.
     appId: '1:823103324756:android:be06f37d38d379b1f063c1',
+    // Identificador usado pelos serviços de mensagens do projeto Firebase.
     messagingSenderId: '823103324756',
+    // Nome do projeto que criamos no console do Firebase.
     projectId: 'explore-turismo',
+    // Endereço reservado ao armazenamento do projeto Firebase.
     storageBucket: 'explore-turismo.firebasestorage.app',
   );
 }
