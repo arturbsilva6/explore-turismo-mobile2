@@ -1,3 +1,5 @@
+// PARA A APRESENTAÇÃO: este arquivo inicia o aplicativo, configura os serviços e decide qual tela abrir.
+// Os comentários são explicações simples; as regras do código continuam iguais.
 // Permissões de câmera/localização: AndroidManifest.xml e ios/Runner/Info.plist.
 
 import 'package:flutter/material.dart';
@@ -25,11 +27,15 @@ const bool firebaseHabilitado = bool.fromEnvironment(
   defaultValue: true,
 );
 
+// A função main inicia o aplicativo.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Verifica se o login permite continuar.
   if (firebaseHabilitado && !kIsWeb &&
       defaultTargetPlatform == TargetPlatform.android) {
+    // Tentamos realizar a tarefa, pois serviços externos podem falhar.
     try {
+      // Espera o Firebase responder.
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
@@ -43,17 +49,21 @@ Future<void> main() async {
   runApp(Inicializar(sessaoApiRestaurada: sessaoApi));
 }
 
+// A classe Inicializar junta as informações e funções deste assunto em um só lugar.
 class Inicializar extends StatefulWidget {
   const Inicializar({super.key, this.sessaoApiRestaurada = false});
 
+  // Guarda uma informação sobre a conta que está usando o app.
   final bool sessaoApiRestaurada;
 
   @override
   State<Inicializar> createState() => _InicializarState();
 }
 
+// A classe _InicializarState junta as informações e funções deste assunto em um só lugar.
 class _InicializarState extends State<Inicializar> {
   @override
+  // A função build organiza o que aparece na tela.
   Widget build(BuildContext context) {
     /*
     (_) -> BuildContext
