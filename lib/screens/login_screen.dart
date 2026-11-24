@@ -1,3 +1,5 @@
+// PARA A APRESENTAÇÃO: este arquivo oferece o login da API da faculdade e o login com Google.
+// Comentários em linguagem simples: explicam o que a tela faz, sem alterar o código.
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:guia_turismo/screens/firebase_login_screen.dart';
