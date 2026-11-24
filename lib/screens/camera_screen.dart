@@ -1,3 +1,5 @@
+// PARA A APRESENTAÇÃO: este arquivo deixa a pessoa tirar uma foto ou escolher uma da galeria.
+// Comentários em linguagem simples: explicam o que a tela faz, sem alterar o código.
 import 'dart:io';
 
 import 'package:flutter/material.dart';
