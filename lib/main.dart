@@ -22,6 +22,7 @@ import 'package:provider/provider.dart';
 
 // No Android, Firebase está ativo por padrão; a API acadêmica é independente.
 // A flag FIREBASE_ENABLED=false desativa Firebase em testes ou ambientes sem OAuth.
+// Essa opção permite ligar ou desligar o Firebase sem reescrever o aplicativo.
 const bool firebaseHabilitado = bool.fromEnvironment(
   'FIREBASE_ENABLED',
   defaultValue: true,
@@ -29,13 +30,16 @@ const bool firebaseHabilitado = bool.fromEnvironment(
 
 // A função main inicia o aplicativo.
 Future<void> main() async {
+  // Prepara o Flutter antes de usar recursos do celular e do Firebase.
   WidgetsFlutterBinding.ensureInitialized();
   // Verifica se o login permite continuar.
+  // O Firebase é iniciado no Android; outras plataformas seguem usando a API acadêmica.
   if (firebaseHabilitado && !kIsWeb &&
       defaultTargetPlatform == TargetPlatform.android) {
     // Tentamos realizar a tarefa, pois serviços externos podem falhar.
     try {
       // Espera o Firebase responder.
+      // Faz a conexão inicial com o Firebase usando os dados do projeto.
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
@@ -45,7 +49,9 @@ Future<void> main() async {
     }
   }
   // A sessão da API é independente da autenticação Firebase e também persiste.
+  // Confere se a conta da API já tinha ficado conectada.
   final sessaoApi = await SessionService().temSessaoApi();
+  // Com tudo preparado, abre a primeira tela do Explore Turismo.
   runApp(Inicializar(sessaoApiRestaurada: sessaoApi));
 }
 
@@ -69,6 +75,7 @@ class _InicializarState extends State<Inicializar> {
     (_) -> BuildContext
       Escuta as mudanças e "compartilha" o controller com o resto do código
     */
+    // Compartilha os controladores para várias telas usarem os mesmos dados.
     return MultiProvider(providers: [
       ChangeNotifierProvider(create: (_) => LugaresController()),
       ChangeNotifierProvider(create: (_) => AuthController()),
@@ -83,11 +90,13 @@ class _InicializarState extends State<Inicializar> {
         theme: controllerThema.temaClaro(),
         darkTheme: controllerThema.temaEscuro(),
         themeMode: controllerThema.temaAtual,
+        // Se já houver login válido salvo, o aplicativo pode começar na Home.
         initialRoute: widget.sessaoApiRestaurada ||
                 (Firebase.apps.isNotEmpty &&
                     FirebaseAuth.instance.currentUser != null)
             ? 'home' : 'login',
         //Define as rotas e em quais classes devem ser chamadas
+        // Esses nomes servem para abrir a tela de login, início, lugares e câmera.
         routes: {
           'login': (context) => LoginScreen(),
           'home': (context) => HomeScreen(),
