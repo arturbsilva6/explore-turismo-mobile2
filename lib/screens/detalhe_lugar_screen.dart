@@ -1,3 +1,5 @@
+// PARA A APRESENTAÇÃO: este arquivo mostra os detalhes do destino e os botões de foto, favorito e rota.
+// Comentários em linguagem simples: explicam o que a tela faz, sem alterar o código.
 import 'dart:io';
 
 import 'package:flutter/material.dart';
