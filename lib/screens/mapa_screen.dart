@@ -1,3 +1,5 @@
+// PARA A APRESENTAÇÃO: este arquivo desenha os lugares no mapa e permite consultar o GPS do celular.
+// Comentários em linguagem simples: explicam o que a tela faz, sem alterar o código.
 import 'package:flutter/material.dart';
 import 'package:guia_turismo/services/localizacao_atual_service.dart';
 import 'package:guia_turismo/services/rotas_service.dart';
