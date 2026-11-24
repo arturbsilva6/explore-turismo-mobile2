@@ -1,3 +1,5 @@
+// PARA A APRESENTAÇÃO: este arquivo reúne as abas do aplicativo e permite sair da conta.
+// Comentários em linguagem simples: explicam o que a tela faz, sem alterar o código.
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:guia_turismo/services/firebase_auth_service.dart';
