@@ -1,3 +1,5 @@
+// PARA A APRESENTAÇÃO: este arquivo define as cores e o estilo visual claro e escuro do aplicativo.
+// As explicações abaixo ajudam a entender os passos sem alterar o resultado.
 import 'package:flutter/material.dart';
 
 /*
