@@ -1,3 +1,5 @@
+// PARA A APRESENTAÇÃO: este arquivo mostra os lugares e permite cadastrar um novo com nome, categoria, posição e foto.
+// Comentários em linguagem simples: explicam o que a tela faz, sem alterar o código.
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:guia_turismo/controllers/favoritos_controller.dart';
