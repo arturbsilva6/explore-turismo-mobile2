@@ -1,3 +1,5 @@
+// PARA A APRESENTAÇÃO: este arquivo mostra o login de teste com Google ou e-mail e senha.
+// Comentários em linguagem simples: explicam o que a tela faz, sem alterar o código.
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:guia_turismo/services/firebase_auth_service.dart';
