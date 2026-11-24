@@ -1,3 +1,5 @@
+// PARA A APRESENTAÇÃO: este arquivo permite ajustar o pino no mapa antes de preencher o cadastro.
+// Comentários em linguagem simples: explicam o que a tela faz, sem alterar o código.
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
