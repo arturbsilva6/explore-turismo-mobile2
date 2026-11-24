@@ -14,6 +14,8 @@ melhorias na navegação, pesquisa de lugares, detalhes e interface visual.
 - `flutter_map` 8.3.2 e `latlong2` 0.10.1 para mapas e coordenadas
 - OpenStreetMap para tiles e Nominatim para geocodificação
 - `http_parser` para interpretar o cabeçalho HTTP `Retry-After`
+- `geolocator` para GPS e distância, `url_launcher` para rotas externas
+- Firebase Auth (Google/e-mail/senha), upload de galeria e favoritos via API
 
 ## Funcionalidades
 
@@ -26,7 +28,7 @@ melhorias na navegação, pesquisa de lugares, detalhes e interface visual.
 - **Detalhes do lugar** com descrição e coordenadas copiáveis
 - **Atualização da lista** com gesto de puxar para baixo e botão de atualizar
 - **Página inicial própria** com atalhos para os recursos existentes
-- Tema claro/escuro e acesso à câmera/galeria (sem upload de imagens ainda)
+- Tema claro/escuro, câmera/galeria, captura de foto no cadastro e upload em galeria via API
 - **Mapa interativo** com marcadores dos lugares com coordenadas válidas,
   nome/categoria e acesso aos detalhes
 - **Paginação da API** com até dez páginas de 30 lugares, remoção de IDs
@@ -36,6 +38,10 @@ melhorias na navegação, pesquisa de lugares, detalhes e interface visual.
 - **Ajuste do marcador por toque no mapa** e confirmação para preencher latitude
   e longitude; os campos continuam editáveis manualmente
 - Tratamento de carregamento, vazio, coordenadas inválidas e falhas de rede
+- GPS atual sob permissão do usuário, pin azul e distância aproximada no mapa
+- Fotos nos marcadores quando retornadas pela galeria da API; fallback para lugares sem fotos
+- Favoritos com a API acadêmica (ou armazenamento local ao usar apenas Google)
+- **Como chegar** abre uma rota externa no Google Maps; filtro de categoria no mapa
 
 Consulte [SEGUNDA_ENTREGA.md](SEGUNDA_ENTREGA.md) para os objetivos, funcionamento,
 resultados das verificações e evidências relatadas no Android.
@@ -98,8 +104,9 @@ confidenciais nas buscas.
 - As opções de categoria do formulário e do filtro refletem as cinco categorias
   existentes na API na data de desenvolvimento. Carregamento dinâmico de
   categorias é uma melhoria futura.
-- A câmera seleciona fotos, mas o envio para a galeria da API ainda não está
-  implementado.
+- A câmera seleciona fotos e o upload foi implementado na branch da entrega final.
+  Se não for possível identificar com segurança o ID do novo lugar, a foto pode
+  ser enviada posteriormente pela tela de detalhes.
 - O usuário relatou teste do mapa, marcadores e acesso aos detalhes no emulador
   Android. A busca e o ajuste de coordenadas possuem testes automatizados; a
   validação manual completa desta etapa e das correções finais continua recomendada.
@@ -108,7 +115,7 @@ confidenciais nas buscas.
 
 - `lib/models` — dados e conversão JSON
 - `lib/services` — chamadas HTTP e persistência de sessão
-- `lib/controller` — estado e integração entre serviços e telas
+- `lib/controllers` — estado e integração entre serviços e telas (a pasta `lib/controller` conserva aliases legados)
 - `lib/screens` — interface, formulário, lista e detalhes
 - `lib/themes` — tema e cores
 - `lib/widgets` — busca de localização reutilizável no formulário
@@ -128,11 +135,18 @@ na entrega e no histórico de commits.
 
 ## Aula sobre Firebase Authentication
 
-A branch `feat/firebase-auth-aula` prepara uma **demonstração independente** de
-login Firebase por e-mail/senha e Google. O login da API da faculdade continua
+A integração do PR #2 já foi incorporada na `main`. Na entrega final, Firebase
+é inicializado por padrão em Android e oferece login direto por Google, além
+da tela de demonstração com e-mail/senha. O login da API da faculdade continua
 sendo o único utilizado para cadastrar lugares; um token do Firebase não é
 aceito automaticamente pela API.
 
-A configuração da conta Firebase, do aplicativo Android e do OAuth Google
-é feita pelo próprio estudante. Veja [FIREBASE_AULA.md](FIREBASE_AULA.md)
-para concluir a instalação e validar no emulador.
+A configuração do app Android, SHA-1 e OAuth Google foi concluída para a chave
+**debug** do computador usado na aula. Consulte [FIREBASE_AULA.md](FIREBASE_AULA.md)
+para trocar assinatura/plataforma ou validar novamente no aparelho.
+
+## Entrega final Mobile II
+
+A implementação de GPS do aparelho, favoritos, galeria com foto, filtro no mapa, rotas e melhorias de login encontra-se em desenvolvimento na branch `feat/entrega-final-mobile2` (PR #3). Consulte [ENTREGA_FINAL.md](ENTREGA_FINAL.md) para os limites conhecidos e o roteiro de testes no celular.
+
+A imagem externa de placeholder `placehold.co/150x150.png` foi removida da tela de câmera nesta branch.

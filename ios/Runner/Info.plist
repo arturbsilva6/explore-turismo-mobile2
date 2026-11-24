@@ -67,8 +67,12 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Usamos sua localização, com sua permissão, para mostrar sua posição no mapa e a distância dos lugares.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Permite escolher fotos para cadastrar lugares.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Permites que eu use a camera?</string>
+	<string>O Explore Turismo precisa acessar a câmera para fotografar lugares.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Posso usar seu microfone??</string>
  

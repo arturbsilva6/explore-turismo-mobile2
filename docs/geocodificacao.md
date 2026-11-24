@@ -18,7 +18,9 @@ e a [política de tiles](https://operations.osmfoundation.org/policies/tiles/).
 
 - Busca somente mediante clique, sem autocomplete, busca em segundo plano ou
   repetição automática. Até cinco resultados em português.
-- Endereços usam `q`; CEPs de oito dígitos usam `postalcode` e `countrycodes=br`.
+- Endereços usam `q`. Para CEPs de oito dígitos, o ViaCEP fornece logradouro,
+  cidade e UF para a busca no Nominatim com `countrycodes=br`. Para CEPs
+  gerais sem logradouro, o Nominatim recebe `postalcode`.
 - HTTP identifica o app como `ExploreTurismo-MobileII/1.0 (Flutter Android)`.
 - Fila estática compartilhada entre instâncias serializa as requisições e
   impõe intervalo mínimo de um segundo no processo. Timeout de 15 segundos.
