@@ -13,8 +13,8 @@ class LugaresServices {
 
   // Este é o endereço usado para conversar com o serviço na internet.
   final String endpoint = 'https://guia.liliaborges.com.br/lugares';
-  // Ajuda a respeitar limites e não repetir consultas demais.
-  final int limite = 30;
+  // Pede até 100 lugares compartilhados por página.
+  final int limite = 100;
   // Essa variável guarda um dado necessário para fazer a consulta.
   static const maxPaginas = 10;
   // Ajuda a respeitar limites e não repetir consultas demais.
