@@ -8,9 +8,8 @@ class LugaresModel {
   final String nome;
   // Guarda um valor que será usado para decidir ou mostrar alguma informação.
   final String? categoria;
-  // Guarda um dado de posição no mapa.
+  // A API pode devolver coordenadas inteiras ou decimais.
   final num latitude;
-  // Guarda um dado de posição no mapa.
   final num longitude;
   // Guarda um valor que será usado para decidir ou mostrar alguma informação.
   final String? descricao;

@@ -31,7 +31,7 @@ melhorias na navegação, pesquisa de lugares, detalhes e interface visual.
 - Tema claro/escuro, câmera/galeria, captura de foto no cadastro e upload em galeria via API
 - **Mapa interativo** com marcadores dos lugares com coordenadas válidas,
   nome/categoria e acesso aos detalhes
-- **Paginação da API** com até dez páginas de 30 lugares, remoção de IDs
+- **Paginação da API** com até dez páginas de 100 lugares, remoção de IDs
   repetidos e aviso quando o resultado for parcial
 - **Busca opcional por endereço ou CEP no cadastro**, somente pelo botão
   **Buscar localização**, com seleção entre até cinco resultados
@@ -95,7 +95,7 @@ confidenciais nas buscas.
 ## Limitações conhecidas
 
 - A busca por nome e os filtros são locais, sobre os lugares carregados
-  (até 300). Se o servidor repetir páginas, ignorar o tamanho solicitado ou a
+  (até 1.000). Se o servidor repetir páginas, ignorar o tamanho solicitado ou a
   consulta atingir o limite seguro, a interface informa que o resultado é parcial.
 - A precisão de endereço/CEP depende da cobertura do OpenStreetMap. O resultado
   pode indicar uma região; o usuário deve conferir e ajustar o marcador.

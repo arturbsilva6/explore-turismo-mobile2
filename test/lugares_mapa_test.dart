@@ -29,7 +29,8 @@ void main() {
       );
     }
     // Guarda uma informação de exemplo para o teste.
-    final valido = LugaresModel.fromJson(lugar(2));
+    final valido = LugaresModel.fromJson(lugar(2, latitude: -23));
+    expect(valido.latitude, isA<int>());
     // Confere se o resultado é exatamente o que esperamos.
     expect(valido.coordenadasValidas, isTrue);
     // Confere se o resultado é exatamente o que esperamos.
@@ -47,16 +48,17 @@ void main() {
       // Usamos um exemplo controlado para não depender de internet ou mapa real.
       client: MockClient((uri) async {
         paginas.add(uri.url.queryParameters['pagina']);
+        expect(uri.url.queryParameters['limite'], '100');
         // Guarda uma informação de exemplo para o teste.
         final itens = paginas.length == 1
-            ? List.generate(30, (i) => lugar(i))
-            : [lugar(29), lugar(30)];
+            ? List.generate(100, (i) => lugar(i))
+            : [lugar(99), lugar(100)];
         // Devolve uma resposta simulada do servidor.
         return http.Response(jsonEncode({'data': itens}), 200);
       }),
     );
     // Confere se o resultado é exatamente o que esperamos.
-    expect((await service.buscarLugares()).length, 31);
+    expect((await service.buscarLugares()).length, 101);
     // Confere se o resultado é exatamente o que esperamos.
     expect(paginas, ['1', '2']);
     // Confere se o resultado é exatamente o que esperamos.
@@ -74,13 +76,13 @@ void main() {
         chamadas++;
         // Devolve uma resposta simulada do servidor.
         return http.Response(
-          jsonEncode({'data': List.generate(30, (i) => lugar(i))}),
+          jsonEncode({'data': List.generate(100, (i) => lugar(i))}),
           200,
         );
       }),
     );
     // Confere se o resultado é exatamente o que esperamos.
-    expect((await service.buscarLugares()).length, 30);
+    expect((await service.buscarLugares()).length, 100);
     // Confere se o resultado é exatamente o que esperamos.
     expect(chamadas, 2);
     // Confere se o resultado é exatamente o que esperamos.
@@ -96,16 +98,16 @@ void main() {
       // Usamos um exemplo controlado para não depender de internet ou mapa real.
       client: MockClient((_) async {
         // Guarda uma informação de exemplo para o teste.
-        final inicio = chamadas++ * 30;
+        final inicio = chamadas++ * 100;
         // Devolve uma resposta simulada do servidor.
         return http.Response(
-          jsonEncode({'data': List.generate(30, (i) => lugar(inicio + i))}),
+          jsonEncode({'data': List.generate(100, (i) => lugar(inicio + i))}),
           200,
         );
       }),
     );
     // Confere se o resultado é exatamente o que esperamos.
-    expect((await service.buscarLugares()).length, 300);
+    expect((await service.buscarLugares()).length, 1000);
     // Confere se o resultado é exatamente o que esperamos.
     expect(chamadas, 10);
     // Confere se o resultado é exatamente o que esperamos.
@@ -124,7 +126,7 @@ void main() {
         if (chamadas++ > 0) return http.Response('erro', 503);
         // Devolve uma resposta simulada do servidor.
         return http.Response(
-          jsonEncode({'data': List.generate(30, (i) => lugar(i))}),
+          jsonEncode({'data': List.generate(100, (i) => lugar(i))}),
           200,
         );
       }),
@@ -185,7 +187,7 @@ void main() {
         }),
       );
       // Confere se o resultado é exatamente o que esperamos.
-      expect((await service.buscarLugares()).length, 30);
+      expect((await service.buscarLugares()).length, 100);
       // Confere se o resultado é exatamente o que esperamos.
       expect(chamadas, 1);
       // Confere se o resultado é exatamente o que esperamos.
